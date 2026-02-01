@@ -1,0 +1,125 @@
+{
+  "name": "simple-markdown-editor",
+  "displayName": "Simple Markdown Editor",
+  "description": "A rich WYSIWYG Markdown editor for VS Code with a modern toolbar interface",
+  "version": "1.0.0",
+  "publisher": "mech2cs",
+  "license": "MIT",
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sijunnoh/simple-markdown-editor"
+  },
+  "engines": {
+    "vscode": "^1.108.1"
+  },
+  "categories": [
+    "Formatters",
+    "Visualization"
+  ],
+  "keywords": [
+    "markdown",
+    "editor",
+    "wysiwyg",
+    "tiptap",
+    "rich text"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "simple-markdown-editor.markdownEditor",
+        "displayName": "Simple Markdown Editor",
+        "selector": [
+          {
+            "filenamePattern": "*.md"
+          }
+        ],
+        "priority": "default"
+      }
+    ],
+    "commands": [],
+    "keybindings": [
+      {
+        "key": "cmd+b",
+        "command": "-workbench.action.toggleSidebarVisibility",
+        "when": "activeCustomEditorId == 'simple-markdown-editor.markdownEditor'"
+      },
+      {
+        "key": "ctrl+b",
+        "command": "-workbench.action.toggleSidebarVisibility",
+        "when": "activeCustomEditorId == 'simple-markdown-editor.markdownEditor'"
+      },
+      {
+        "key": "cmd+i",
+        "command": "-editor.action.triggerSuggest",
+        "when": "activeCustomEditorId == 'simple-markdown-editor.markdownEditor'"
+      },
+      {
+        "key": "ctrl+i",
+        "command": "-editor.action.triggerSuggest",
+        "when": "activeCustomEditorId == 'simple-markdown-editor.markdownEditor'"
+      },
+      {
+        "key": "cmd+k",
+        "command": "-workbench.action.terminal.clear",
+        "when": "activeCustomEditorId == 'simple-markdown-editor.markdownEditor'"
+      },
+      {
+        "key": "ctrl+k",
+        "command": "-workbench.action.terminal.clear",
+        "when": "activeCustomEditorId == 'simple-markdown-editor.markdownEditor'"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/react": "^19.2.10",
+    "@types/react-dom": "^19.2.3",
+    "@types/turndown": "^5.0.6",
+    "@types/vscode": "^1.108.1",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "esbuild": "^0.27.2",
+    "eslint": "^9.39.2",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.52.0"
+  },
+  "dependencies": {
+    "@tiptap/extension-code-block-lowlight": "^3.18.0",
+    "@tiptap/extension-image": "^3.18.0",
+    "@tiptap/extension-link": "^3.18.0",
+    "@tiptap/extension-table": "^3.18.0",
+    "@tiptap/extension-table-cell": "^3.18.0",
+    "@tiptap/extension-table-header": "^3.18.0",
+    "@tiptap/extension-table-row": "^3.18.0",
+    "@tiptap/extension-task-item": "^3.18.0",
+    "@tiptap/extension-task-list": "^3.18.0",
+    "@tiptap/pm": "^3.18.0",
+    "@tiptap/react": "^3.18.0",
+    "@tiptap/starter-kit": "^3.18.0",
+    "lowlight": "^3.3.0",
+    "lucide-react": "^0.563.0",
+    "marked": "^17.0.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "turndown": "^7.2.2"
+  }
+}
