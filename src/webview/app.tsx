@@ -189,6 +189,8 @@ type ViewMode = "editor" | "source" | "split";
 const turndown = new TurndownService({
 	headingStyle: "atx",
 	codeBlockStyle: "fenced",
+	hr: "---",
+	bulletListMarker: "-",
 	blankReplacement: (content, node) => {
 		// Preserve blank lines
 		return "\n\n";
@@ -702,6 +704,7 @@ export function App() {
 	const isUpdatingFromExtension = useRef(false);
 	const isComposing = useRef(false); // For IME (Korean, Japanese, Chinese)
 	const updateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const lastSyncedMarkdownRef = useRef<string>(""); // Track last synced content to avoid unnecessary edits
 	const linkHoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
 		null,
 	);
@@ -891,10 +894,14 @@ export function App() {
 				}
 				setMarkdown(md);
 
-				vscode.postMessage({
-					type: "edit",
-					content: md,
-				});
+				// Only send edit if content actually changed
+				if (md !== lastSyncedMarkdownRef.current) {
+					lastSyncedMarkdownRef.current = md;
+					vscode.postMessage({
+						type: "edit",
+						content: md,
+					});
+				}
 
 				// Check for suggestions
 				const { state } = editor;
@@ -937,10 +944,14 @@ export function App() {
 						md = untransformImagePaths(md, baseUriRef.current);
 					}
 					setMarkdown(md);
-					vscode.postMessage({
-						type: "edit",
-						content: md,
-					});
+					// Only send edit if content actually changed
+					if (md !== lastSyncedMarkdownRef.current) {
+						lastSyncedMarkdownRef.current = md;
+						vscode.postMessage({
+							type: "edit",
+							content: md,
+						});
+					}
 				}, 50);
 			}
 		};
@@ -1064,10 +1075,14 @@ export function App() {
 						md = untransformImagePaths(md, baseUriRef.current);
 					}
 					setMarkdown(md);
-					vscode.postMessage({
-						type: "edit",
-						content: md,
-					});
+					// Only send edit if content actually changed
+					if (md !== lastSyncedMarkdownRef.current) {
+						lastSyncedMarkdownRef.current = md;
+						vscode.postMessage({
+							type: "edit",
+							content: md,
+						});
+					}
 				}
 			}
 		};
@@ -1106,6 +1121,7 @@ export function App() {
 			switch (message.type) {
 				case "update":
 					setMarkdown(message.content);
+					lastSyncedMarkdownRef.current = message.content; // Track synced content
 					if (message.baseUri) {
 						setBaseUri(message.baseUri);
 						baseUriRef.current = message.baseUri;
@@ -1185,10 +1201,14 @@ export function App() {
 			}, 0);
 		}
 
-		vscode.postMessage({
-			type: "edit",
-			content: newMarkdown,
-		});
+		// Only send edit if content actually changed
+		if (newMarkdown !== lastSyncedMarkdownRef.current) {
+			lastSyncedMarkdownRef.current = newMarkdown;
+			vscode.postMessage({
+				type: "edit",
+				content: newMarkdown,
+			});
+		}
 	};
 
 	// Open link modal

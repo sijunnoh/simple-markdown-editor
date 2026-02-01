@@ -2,6 +2,18 @@
 
 All notable changes to Simple Markdown Editor will be documented in this file.
 
+## [1.0.4] - 2026-02-01
+
+### Fixed
+
+- **Save Indicator Bug**: Fixed unsaved indicator (white dot) not disappearing after save
+- **Horizontal Rule Conversion**: Fixed `---` being converted to `***` on save
+- **Bullet List Conversion**: Fixed `-` bullets being converted to `*` on save
+
+### Improved
+
+- **Edit Synchronization**: Only send edits to VS Code when content actually changes
+
 ## [1.0.3] - 2026-02-01
 
 ### Added
