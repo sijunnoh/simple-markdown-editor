@@ -2,6 +2,24 @@
 
 All notable changes to Simple Markdown Editor will be documented in this file.
 
+## [1.0.6] - 2026-02-02
+
+### Added
+
+- **Title Bar Button**: Click the button in the editor title bar to quickly open markdown files with WYSIWYG editor
+- **Optional Editor**: Changed to optional editor (use "Open With..." or title bar button to open with WYSIWYG)
+
+### Fixed
+
+- **Table Cell Formatting**: Fixed bold, italic, code, strikethrough, and links being lost in table cells on save
+- **Split View Cursor**: Fixed cursor jumping to end of document when saving in split view
+- **Split View Scroll**: Fixed markdown textarea scroll position resetting on save
+- **Save Flickering**: Fixed content flickering with old content during save
+
+### Improved
+
+- **Source View Hints Bar**: Split into 2 rows (Text/Block) to prevent horizontal scrollbar
+
 ## [1.0.5] - 2026-02-02
 
 ### Added

@@ -57,7 +57,18 @@ export function activate(context: vscode.ExtensionContext) {
 		MarkdownEditorProvider.sendCommand('toggleStrike');
 	});
 
-	context.subscriptions.push(disposable, showFormatMenuCommand, insertLinkCommand, toggleCodeCommand, toggleStrikeCommand);
+	const openWithWysiwygCommand = vscode.commands.registerCommand('simple-markdown-editor.openWithWysiwyg', async () => {
+		const activeEditor = vscode.window.activeTextEditor;
+		if (activeEditor && activeEditor.document.uri.fsPath.endsWith('.md')) {
+			await vscode.commands.executeCommand(
+				'vscode.openWith',
+				activeEditor.document.uri,
+				'simple-markdown-editor.markdownEditor'
+			);
+		}
+	});
+
+	context.subscriptions.push(disposable, showFormatMenuCommand, insertLinkCommand, toggleCodeCommand, toggleStrikeCommand, openWithWysiwygCommand);
 }
 
 export function deactivate() {}

@@ -22,6 +22,11 @@ Full-featured toolbar with quick access to:
 - **Source**: Raw Markdown source editing
 - **Split**: Side-by-side editor and source view
 
+### Quick Switch to WYSIWYG Editor
+When viewing a Markdown file in text editor, click the button in the title bar to open it with Simple Markdown Editor.
+
+![Title bar button](public/title-bar-button.png)
+
 ### Code Blocks
 Syntax highlighting for 20+ programming languages with a language selector dropdown.
 

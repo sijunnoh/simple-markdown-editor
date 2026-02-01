@@ -59,14 +59,15 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 			.asWebviewUri(documentDir)
 			.toString();
 
-		// Flag to prevent update loop
-		let isUpdatingFromWebview = false;
+		// Track last content received from webview to prevent update loops
+		let lastContentFromWebview = "";
 
 		// Send initial content to webview
 		const updateWebview = () => {
+			const content = document.getText();
 			webviewPanel.webview.postMessage({
 				type: "update",
-				content: document.getText(),
+				content,
 				baseUri: documentDirWebviewUri,
 			});
 		};
@@ -75,8 +76,10 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 		const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(
 			(e) => {
 				if (e.document.uri.toString() === document.uri.toString()) {
-					// Only update webview if change came from outside (e.g., git, another editor)
-					if (!isUpdatingFromWebview) {
+					// Only update webview if content differs from what webview sent
+					// This prevents echo when webview's edit is applied to document
+					const currentContent = document.getText();
+					if (currentContent !== lastContentFromWebview) {
 						updateWebview();
 					}
 				}
@@ -87,12 +90,9 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 		webviewPanel.webview.onDidReceiveMessage(async (message) => {
 			switch (message.type) {
 				case "edit":
-					isUpdatingFromWebview = true;
+					// Track content from webview to prevent echo
+					lastContentFromWebview = message.content;
 					await this.updateTextDocument(document, message.content);
-					// Reset flag after a short delay
-					setTimeout(() => {
-						isUpdatingFromWebview = false;
-					}, 50);
 					break;
 				case "ready":
 					updateWebview();
@@ -388,11 +388,8 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     .ProseMirror td {
       background: var(--vscode-editor-background);
     }
-    /* First row styling (header row) */
-    .ProseMirror tr:first-child th,
-    .ProseMirror tr:first-child td {
-      background: var(--vscode-textCodeBlock-background);
-      font-weight: 600;
+    /* Header row styling - only for th cells */
+    .ProseMirror tr:first-child th {
       border-bottom: 2px solid var(--vscode-foreground);
     }
     .ProseMirror .tableWrapper {
