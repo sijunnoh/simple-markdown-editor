@@ -2,6 +2,22 @@
 
 All notable changes to Simple Markdown Editor will be documented in this file.
 
+## [1.0.3] - 2026-02-01
+
+### Added
+
+- **Table Context Menu**: Right-click on table cells to access table operations
+  - Insert row above/below
+  - Insert column left/right
+  - Delete row/column
+  - Delete table
+
+### Improved
+
+- **Table Header Styling**: First row always styled as header, even after deleting original header row
+- **Context Menu UX**: Menu closes on outside click instead of mouse leave
+- **Menu Positioning**: Context menu stays visible near viewport edges
+
 ## [1.0.2] - 2026-02-01
 
 ### Fixed

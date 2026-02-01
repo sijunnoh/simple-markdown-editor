@@ -43,10 +43,12 @@ Interactive checkboxes for task lists. Click to toggle completion.
 
 ### Tables
 - Insert tables via toolbar
+- Right-click context menu for row/column operations
 - Selection outline when focused
-- Delete table via floating menu
 
 ![Table editing](public/table.png)
+
+![Table context menu](public/table-context-menu.png)
 
 ## Keyboard Shortcuts
 

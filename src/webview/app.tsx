@@ -661,6 +661,12 @@ interface TableMenuState {
 	position: { x: number; y: number };
 }
 
+// Table context menu state
+interface TableContextMenu {
+	visible: boolean;
+	position: { x: number; y: number };
+}
+
 export function App() {
 	const [markdown, setMarkdown] = useState<string>("");
 	const [viewMode, setViewMode] = useState<ViewMode>("editor");
@@ -684,6 +690,10 @@ export function App() {
 	const [suggestionPos, setSuggestionPos] = useState({ x: 0, y: 0 });
 	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [tableMenu, setTableMenu] = useState<TableMenuState>({
+		visible: false,
+		position: { x: 0, y: 0 },
+	});
+	const [tableContextMenu, setTableContextMenu] = useState<TableContextMenu>({
 		visible: false,
 		position: { x: 0, y: 0 },
 	});
@@ -1326,8 +1336,68 @@ export function App() {
 	const handleDeleteTable = useCallback(() => {
 		if (!editor) return;
 		editor.chain().focus().deleteTable().run();
-		setModalType(null);
+		setTableContextMenu({ visible: false, position: { x: 0, y: 0 } });
 	}, [editor]);
+
+	// Table context menu handlers
+	const handleAddRowAbove = useCallback(() => {
+		if (!editor) return;
+		editor.chain().focus().addRowBefore().run();
+		setTableContextMenu({ visible: false, position: { x: 0, y: 0 } });
+	}, [editor]);
+
+	const handleAddRowBelow = useCallback(() => {
+		if (!editor) return;
+		editor.chain().focus().addRowAfter().run();
+		setTableContextMenu({ visible: false, position: { x: 0, y: 0 } });
+	}, [editor]);
+
+	const handleAddColumnLeft = useCallback(() => {
+		if (!editor) return;
+		editor.chain().focus().addColumnBefore().run();
+		setTableContextMenu({ visible: false, position: { x: 0, y: 0 } });
+	}, [editor]);
+
+	const handleAddColumnRight = useCallback(() => {
+		if (!editor) return;
+		editor.chain().focus().addColumnAfter().run();
+		setTableContextMenu({ visible: false, position: { x: 0, y: 0 } });
+	}, [editor]);
+
+	const handleDeleteRow = useCallback(() => {
+		if (!editor) return;
+		editor.chain().focus().deleteRow().run();
+		setTableContextMenu({ visible: false, position: { x: 0, y: 0 } });
+	}, [editor]);
+
+	const handleDeleteColumn = useCallback(() => {
+		if (!editor) return;
+		editor.chain().focus().deleteColumn().run();
+		setTableContextMenu({ visible: false, position: { x: 0, y: 0 } });
+	}, [editor]);
+
+	// Handle table context menu
+	const handleTableContextMenu = useCallback((e: React.MouseEvent) => {
+		if (!editor?.isActive("table")) return;
+
+		e.preventDefault();
+
+		// Calculate position with boundary check
+		const menuWidth = 180;
+		const menuHeight = 280;
+		const x = Math.min(e.clientX, window.innerWidth - menuWidth - 10);
+		const y = Math.min(e.clientY, window.innerHeight - menuHeight - 10);
+
+		setTableContextMenu({
+			visible: true,
+			position: { x, y },
+		});
+	}, [editor]);
+
+	// Close table context menu
+	const closeTableContextMenu = useCallback(() => {
+		setTableContextMenu({ visible: false, position: { x: 0, y: 0 } });
+	}, []);
 
 	// Handle editor click to detect link clicks
 	const handleEditorClick = useCallback(
@@ -1621,7 +1691,9 @@ export function App() {
 						onClick={(e) => {
 							handleEditorClick(e);
 							handleEditorPaneClick(e);
+							closeTableContextMenu();
 						}}
+						onContextMenu={handleTableContextMenu}
 						onMouseOver={handleEditorMouseOver}
 						onMouseLeave={handleEditorMouseLeave}
 						onDrop={handleFileDrop}
@@ -1700,6 +1772,35 @@ export function App() {
 						<Trash2Icon size={14} />
 					</button>
 				</div>
+			)}
+
+			{/* Table Context Menu */}
+			{tableContextMenu.visible && (
+				<>
+					<div
+						className="table-context-menu-overlay"
+						onClick={closeTableContextMenu}
+					/>
+					<div
+						className="table-context-menu"
+						style={{
+							position: "fixed",
+							left: tableContextMenu.position.x,
+							top: tableContextMenu.position.y,
+						}}
+					>
+					<button onClick={handleAddRowAbove}>Insert row above</button>
+					<button onClick={handleAddRowBelow}>Insert row below</button>
+					<div className="context-menu-divider" />
+					<button onClick={handleAddColumnLeft}>Insert column left</button>
+					<button onClick={handleAddColumnRight}>Insert column right</button>
+					<div className="context-menu-divider" />
+					<button onClick={handleDeleteRow}>Delete row</button>
+					<button onClick={handleDeleteColumn}>Delete column</button>
+					<div className="context-menu-divider" />
+					<button onClick={handleDeleteTable} className="danger">Delete table</button>
+				</div>
+			</>
 			)}
 
 			{/* Link Modal */}

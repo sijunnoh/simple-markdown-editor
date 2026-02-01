@@ -342,8 +342,12 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     .ProseMirror table {
       border-collapse: collapse;
       margin: 1em 0;
-      width: 100%;
+      width: 100% !important;
+      min-width: 100% !important;
       table-layout: fixed;
+    }
+    .ProseMirror table colgroup {
+      display: none;
     }
     .ProseMirror th,
     .ProseMirror td {
@@ -351,14 +355,22 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       padding: 8px 12px;
       text-align: left;
       vertical-align: top;
+      width: auto !important;
+      min-width: auto !important;
     }
     .ProseMirror th {
       background: var(--vscode-textCodeBlock-background);
       font-weight: 600;
-      border-bottom: 2px solid var(--vscode-foreground);
     }
     .ProseMirror td {
       background: var(--vscode-editor-background);
+    }
+    /* First row styling (header row) */
+    .ProseMirror tr:first-child th,
+    .ProseMirror tr:first-child td {
+      background: var(--vscode-textCodeBlock-background);
+      font-weight: 600;
+      border-bottom: 2px solid var(--vscode-foreground);
     }
     .ProseMirror .tableWrapper {
       position: relative;
@@ -878,6 +890,53 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     }
     .table-menu-btn:hover {
       background: rgba(255, 0, 0, 0.1);
+    }
+
+    /* Table Context Menu */
+    .table-context-menu-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 99;
+    }
+    .table-context-menu {
+      background: var(--vscode-menu-background);
+      border: 1px solid var(--vscode-menu-border, var(--vscode-panel-border));
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      padding: 4px;
+      min-width: 180px;
+      z-index: 100;
+    }
+    .table-context-menu button {
+      display: block;
+      width: 100%;
+      padding: 6px 12px;
+      border: none;
+      background: transparent;
+      color: var(--vscode-menu-foreground);
+      font-size: 13px;
+      text-align: left;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .table-context-menu button:hover {
+      background: var(--vscode-menu-selectionBackground);
+      color: var(--vscode-menu-selectionForeground);
+    }
+    .table-context-menu button.danger {
+      color: var(--vscode-errorForeground);
+    }
+    .table-context-menu button.danger:hover {
+      background: var(--vscode-errorForeground);
+      color: white;
+    }
+    .context-menu-divider {
+      height: 1px;
+      background: var(--vscode-menu-separatorBackground, var(--vscode-panel-border));
+      margin: 4px 0;
     }
   </style>
 </head>
