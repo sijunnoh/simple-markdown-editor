@@ -2,7 +2,7 @@
   "name": "simple-markdown-editor",
   "displayName": "Simple Markdown Editor",
   "description": "A rich WYSIWYG Markdown editor for VS Code with a modern toolbar interface",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "publisher": "mech2cs",
   "license": "MIT",
   "icon": "icon.png",
@@ -39,7 +39,24 @@
         "priority": "default"
       }
     ],
-    "commands": [],
+    "commands": [
+      {
+        "command": "simple-markdown-editor.showFormatMenu",
+        "title": "Simple Markdown Editor: Format Menu"
+      },
+      {
+        "command": "simple-markdown-editor.insertLink",
+        "title": "Simple Markdown Editor: Insert Link"
+      },
+      {
+        "command": "simple-markdown-editor.toggleCode",
+        "title": "Simple Markdown Editor: Toggle Inline Code"
+      },
+      {
+        "command": "simple-markdown-editor.toggleStrike",
+        "title": "Simple Markdown Editor: Toggle Strikethrough"
+      }
+    ],
     "keybindings": [
       {
         "key": "cmd+b",
@@ -62,13 +79,23 @@
         "when": "activeCustomEditorId == 'simple-markdown-editor.markdownEditor'"
       },
       {
-        "key": "cmd+k",
-        "command": "-workbench.action.terminal.clear",
+        "key": "cmd+/",
+        "command": "-editor.action.commentLine",
         "when": "activeCustomEditorId == 'simple-markdown-editor.markdownEditor'"
       },
       {
-        "key": "ctrl+k",
-        "command": "-workbench.action.terminal.clear",
+        "key": "ctrl+/",
+        "command": "-editor.action.commentLine",
+        "when": "activeCustomEditorId == 'simple-markdown-editor.markdownEditor'"
+      },
+      {
+        "key": "cmd+/",
+        "command": "simple-markdown-editor.showFormatMenu",
+        "when": "activeCustomEditorId == 'simple-markdown-editor.markdownEditor'"
+      },
+      {
+        "key": "ctrl+/",
+        "command": "simple-markdown-editor.showFormatMenu",
         "when": "activeCustomEditorId == 'simple-markdown-editor.markdownEditor'"
       }
     ]

@@ -2,6 +2,17 @@
 
 All notable changes to Simple Markdown Editor will be documented in this file.
 
+## [1.0.5] - 2026-02-02
+
+### Added
+
+- **Format Menu**: Press `Cmd/Ctrl + /` to open a quick-pick menu with all formatting options
+  - Text formatting: Bold, Italic, Strikethrough, Inline Code
+  - Media: Link, Image, Table
+  - Headings: H1, H2, H3
+  - Lists: Bullet, Numbered, Task
+  - Blocks: Blockquote, Code Block
+
 ## [1.0.4] - 2026-02-01
 
 ### Fixed

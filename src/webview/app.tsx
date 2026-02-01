@@ -510,12 +510,8 @@ function HintsBar({ viewMode }: { viewMode: ViewMode }) {
 		{ key: "---", desc: "→ Divider" },
 	];
 
-	const shortcuts = [
-		{ key: `${modKey}+B`, desc: "Bold" },
-		{ key: `${modKey}+I`, desc: "Italic" },
-		{ key: `${modKey}+Shift+S`, desc: "Strike" },
-		{ key: `${modKey}+E`, desc: "Code" },
-		{ key: `${modKey}+K`, desc: "Link" },
+	const shortcuts: { key: string; desc: string; highlight?: boolean }[] = [
+		{ key: `${modKey}+/`, desc: "Format Menu", highlight: true },
 		{ key: `${modKey}+Z`, desc: "Undo" },
 		{ key: `${modKey}+Shift+Z`, desc: "Redo" },
 	];
@@ -553,7 +549,10 @@ function HintsBar({ viewMode }: { viewMode: ViewMode }) {
 				<span className="hints-label">Keys</span>
 				<div className="hints-track">
 					{shortcuts.map((hint, i) => (
-						<span key={i} className="hint-item">
+						<span
+							key={i}
+							className={`hint-item${hint.highlight ? " highlight" : ""}`}
+						>
 							<span className="hint-key">{hint.key}</span>
 							<span className="hint-desc">{hint.desc}</span>
 						</span>
@@ -576,6 +575,22 @@ function Modal({
 	onClose: () => void;
 	children: React.ReactNode;
 }) {
+	// Handle ESC key to close modal
+	useEffect(() => {
+		if (!isOpen) return;
+
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === "Escape") {
+				e.preventDefault();
+				e.stopPropagation();
+				onClose();
+			}
+		};
+
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [isOpen, onClose]);
+
 	if (!isOpen) return null;
 
 	return (
@@ -708,6 +723,7 @@ export function App() {
 	const linkHoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
 		null,
 	);
+	const openLinkModalRef = useRef<(() => void) | null>(null);
 
 	const editor = useEditor({
 		extensions: [
@@ -1163,6 +1179,64 @@ export function App() {
 						editor.commands.deleteSelection();
 					}
 					break;
+				case "command":
+					// Handle commands from extension (keyboard shortcuts / format menu)
+					if (editor && message.command) {
+						switch (message.command) {
+							// Text formatting
+							case "toggleBold":
+								editor.chain().focus().toggleBold().run();
+								break;
+							case "toggleItalic":
+								editor.chain().focus().toggleItalic().run();
+								break;
+							case "toggleStrike":
+								editor.chain().focus().toggleStrike().run();
+								break;
+							case "toggleCode":
+								editor.chain().focus().toggleCode().run();
+								break;
+							// Links, Images, Tables
+							case "insertLink":
+								openLinkModalRef.current?.();
+								break;
+							case "insertImage":
+								vscode.postMessage({ type: "pickImage" });
+								break;
+							case "insertTable":
+								setTableRows("3");
+								setTableCols("3");
+								setModalType("table");
+								break;
+							// Headings
+							case "setHeading1":
+								editor.chain().focus().toggleHeading({ level: 1 }).run();
+								break;
+							case "setHeading2":
+								editor.chain().focus().toggleHeading({ level: 2 }).run();
+								break;
+							case "setHeading3":
+								editor.chain().focus().toggleHeading({ level: 3 }).run();
+								break;
+							// Lists and blocks
+							case "toggleBulletList":
+								editor.chain().focus().toggleBulletList().run();
+								break;
+							case "toggleOrderedList":
+								editor.chain().focus().toggleOrderedList().run();
+								break;
+							case "toggleTaskList":
+								editor.chain().focus().toggleTaskList().run();
+								break;
+							case "toggleBlockquote":
+								editor.chain().focus().toggleBlockquote().run();
+								break;
+							case "toggleCodeBlock":
+								editor.chain().focus().toggleCodeBlock().run();
+								break;
+						}
+					}
+					break;
 			}
 		};
 
@@ -1223,6 +1297,11 @@ export function App() {
 		setLinkUrl(attrs.href || "");
 		setModalType("link");
 	}, [editor]);
+
+	// Keep ref updated for use in message handler
+	useEffect(() => {
+		openLinkModalRef.current = openLinkModal;
+	}, [openLinkModal]);
 
 	// Handle link submit
 	const handleLinkSubmit = useCallback(() => {

@@ -3,7 +3,18 @@ import * as vscode from "vscode";
 export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 	public static readonly viewType = "simple-markdown-editor.markdownEditor";
 
+	private static activeWebviewPanel: vscode.WebviewPanel | undefined;
+
 	constructor(private readonly context: vscode.ExtensionContext) {}
+
+	public static sendCommand(command: string): void {
+		if (MarkdownEditorProvider.activeWebviewPanel) {
+			MarkdownEditorProvider.activeWebviewPanel.webview.postMessage({
+				type: "command",
+				command,
+			});
+		}
+	}
 
 	public static register(context: vscode.ExtensionContext): vscode.Disposable {
 		const provider = new MarkdownEditorProvider(context);
@@ -112,8 +123,20 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 			}
 		});
 
+		// Track active webview panel
+		MarkdownEditorProvider.activeWebviewPanel = webviewPanel;
+
+		webviewPanel.onDidChangeViewState((e) => {
+			if (e.webviewPanel.active) {
+				MarkdownEditorProvider.activeWebviewPanel = webviewPanel;
+			}
+		});
+
 		webviewPanel.onDidDispose(() => {
 			changeDocumentSubscription.dispose();
+			if (MarkdownEditorProvider.activeWebviewPanel === webviewPanel) {
+				MarkdownEditorProvider.activeWebviewPanel = undefined;
+			}
 		});
 
 		updateWebview();
@@ -767,6 +790,20 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       align-items: center;
       gap: 4px;
       white-space: nowrap;
+    }
+    .hint-item.highlight {
+      background: var(--vscode-button-background);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .hint-item.highlight .hint-key {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.3);
+      color: var(--vscode-button-foreground);
+    }
+    .hint-item.highlight .hint-desc {
+      color: var(--vscode-button-foreground);
+      font-weight: 500;
     }
     .hint-key {
       padding: 2px 6px;

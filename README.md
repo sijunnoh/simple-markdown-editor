@@ -56,9 +56,7 @@ Interactive checkboxes for task lists. Click to toggle completion.
 |----------|--------|
 | `Cmd/Ctrl + B` | Bold |
 | `Cmd/Ctrl + I` | Italic |
-| `Cmd/Ctrl + Shift + S` | Strikethrough |
-| `Cmd/Ctrl + E` | Inline Code |
-| `Cmd/Ctrl + K` | Insert Link |
+| `Cmd/Ctrl + /` | Format Menu (Link, Strike, Code, etc.) |
 | `Cmd/Ctrl + Z` | Undo |
 | `Cmd/Ctrl + Shift + Z` | Redo |
 
