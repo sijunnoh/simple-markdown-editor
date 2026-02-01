@@ -2,7 +2,7 @@
   "name": "simple-markdown-editor",
   "displayName": "Simple Markdown Editor",
   "description": "A rich WYSIWYG Markdown editor for VS Code with a modern toolbar interface",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "publisher": "mech2cs",
   "license": "MIT",
   "icon": "icon.png",

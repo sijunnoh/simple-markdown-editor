@@ -299,35 +299,22 @@ turndown.addRule("table", {
 		const rows: string[][] = [];
 		const headerCells: string[] = [];
 
-		// Process thead
-		const thead = table.querySelector("thead");
-		if (thead) {
-			const headerRow = thead.querySelector("tr");
-			if (headerRow) {
-				headerRow.querySelectorAll("th").forEach((th) => {
-					headerCells.push(th.textContent?.trim() || "");
-				});
-			}
-		}
+		// Process all rows directly from the table (TipTap doesn't use thead/tbody)
+		const allRows = table.querySelectorAll("tr");
 
-		// Process tbody
-		const tbody = table.querySelector("tbody");
-		if (tbody) {
-			tbody.querySelectorAll("tr").forEach((tr) => {
-				const cells: string[] = [];
-				tr.querySelectorAll("td, th").forEach((cell) => {
-					cells.push(cell.textContent?.trim() || "");
-				});
-				if (cells.length > 0) {
+		allRows.forEach((tr, rowIndex) => {
+			const cells: string[] = [];
+			tr.querySelectorAll("td, th").forEach((cell) => {
+				cells.push(cell.textContent?.trim() || "");
+			});
+			if (cells.length > 0) {
+				if (rowIndex === 0) {
+					headerCells.push(...cells);
+				} else {
 					rows.push(cells);
 				}
-			});
-		}
-
-		// If no thead, use first row as header
-		if (headerCells.length === 0 && rows.length > 0) {
-			headerCells.push(...rows.shift()!);
-		}
+			}
+		});
 
 		if (headerCells.length === 0) return "";
 
@@ -337,7 +324,6 @@ turndown.addRule("table", {
 		md += "| " + headerCells.join(" | ") + " |\n";
 		md += "| " + headerCells.map(() => "---").join(" | ") + " |\n";
 		rows.forEach((row) => {
-			// Pad row to match column count
 			while (row.length < colCount) row.push("");
 			md += "| " + row.slice(0, colCount).join(" | ") + " |\n";
 		});
@@ -931,6 +917,22 @@ export function App() {
 		};
 		const handleCompositionEnd = () => {
 			isComposing.current = false;
+			// Force update after composition ends (especially for table cells)
+			if (editor && !editor.isDestroyed) {
+				// Small delay to ensure composition is fully complete
+				setTimeout(() => {
+					const html = editor.getHTML();
+					let md = turndown.turndown(html);
+					if (baseUriRef.current) {
+						md = untransformImagePaths(md, baseUriRef.current);
+					}
+					setMarkdown(md);
+					vscode.postMessage({
+						type: "edit",
+						content: md,
+					});
+				}, 50);
+			}
 		};
 
 		document.addEventListener("compositionstart", handleCompositionStart);
@@ -940,7 +942,7 @@ export function App() {
 			document.removeEventListener("compositionstart", handleCompositionStart);
 			document.removeEventListener("compositionend", handleCompositionEnd);
 		};
-	}, []);
+	}, [editor]);
 
 	// Update table menu position when selection changes, scroll, or resize
 	useEffect(() => {
@@ -1031,7 +1033,7 @@ export function App() {
 		};
 	}, [editor, viewMode]);
 
-	// Prevent VS Code from capturing formatting shortcuts
+	// Prevent VS Code from capturing formatting shortcuts and handle save
 	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
 			const isModKey = event.ctrlKey || event.metaKey;
@@ -1039,6 +1041,24 @@ export function App() {
 			if (isModKey && formattingKeys.includes(event.key.toLowerCase())) {
 				event.stopPropagation();
 				event.stopImmediatePropagation();
+			}
+
+			// Force sync on Cmd+S / Ctrl+S (before VS Code saves)
+			if (isModKey && event.key.toLowerCase() === "s") {
+				if (editor && !editor.isDestroyed) {
+					// Force end composition and sync content
+					isComposing.current = false;
+					const html = editor.getHTML();
+					let md = turndown.turndown(html);
+					if (baseUriRef.current) {
+						md = untransformImagePaths(md, baseUriRef.current);
+					}
+					setMarkdown(md);
+					vscode.postMessage({
+						type: "edit",
+						content: md,
+					});
+				}
 			}
 		};
 
@@ -1048,7 +1068,7 @@ export function App() {
 		return () => {
 			window.removeEventListener("keydown", handleKeyDown, true);
 		};
-	}, []);
+	}, [editor]);
 
 	// Edit image from custom event (from NodeView)
 	const handleImageEdit = useCallback(
@@ -1371,10 +1391,13 @@ export function App() {
 
 	// Handle mouse leave for hover popups
 	const handleEditorMouseLeave = useCallback((e: React.MouseEvent) => {
-		const relatedTarget = e.relatedTarget as HTMLElement | null;
+		const relatedTarget = e.relatedTarget;
 
 		// Check if moving to the popup itself
-		if (relatedTarget?.closest(".link-hover-popup")) {
+		if (
+			relatedTarget instanceof HTMLElement &&
+			relatedTarget.closest(".link-hover-popup")
+		) {
 			return;
 		}
 

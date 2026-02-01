@@ -2,6 +2,14 @@
 
 All notable changes to Simple Markdown Editor will be documented in this file.
 
+## [1.0.2] - 2026-02-01
+
+### Fixed
+
+- **Table IME Input**: Fixed Korean/Japanese/Chinese input in table cells not saving correctly
+- **Table Save**: Fixed table content being lost when saving during IME composition
+- **Mouse Event Error**: Fixed `relatedTarget?.closest is not a function` error on mouse leave
+
 ## [1.0.1] - 2026-02-01
 
 ### Fixed
