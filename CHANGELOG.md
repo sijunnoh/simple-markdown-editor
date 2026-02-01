@@ -2,6 +2,18 @@
 
 All notable changes to Simple Markdown Editor will be documented in this file.
 
+## [1.0.1] - 2026-02-01
+
+### Fixed
+
+- **Syntax Highlighting**: Improved code block colors for better visibility in light mode
+- **Table Borders**: Enhanced table header and cell borders for better visibility
+- **Image Paths**: Fixed image display for filenames with spaces
+
+### Improved
+
+- **README**: Added demo GIF and feature screenshots
+
 ## [1.0.0] - 2026-02-01
 
 ### Added

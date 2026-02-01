@@ -347,7 +347,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     }
     .ProseMirror th,
     .ProseMirror td {
-      border: 1px solid var(--vscode-panel-border);
+      border: 1px solid var(--vscode-foreground, #888);
       padding: 8px 12px;
       text-align: left;
       vertical-align: top;
@@ -355,6 +355,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     .ProseMirror th {
       background: var(--vscode-textCodeBlock-background);
       font-weight: 600;
+      border-bottom: 2px solid var(--vscode-foreground);
     }
     .ProseMirror td {
       background: var(--vscode-editor-background);
@@ -441,9 +442,9 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       padding: 0;
       color: var(--vscode-editor-foreground);
     }
-    /* Syntax highlighting (lowlight/highlight.js) */
+    /* Syntax highlighting (lowlight/highlight.js) - works in light and dark */
     .code-block pre code .hljs-comment,
-    .code-block pre code .hljs-quote { color: #616161; font-style: italic; }
+    .code-block pre code .hljs-quote { color: #6a737d; font-style: italic; }
     .code-block pre code .hljs-variable,
     .code-block pre code .hljs-template-variable,
     .code-block pre code .hljs-attribute,
@@ -451,29 +452,29 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     .code-block pre code .hljs-regexp,
     .code-block pre code .hljs-link,
     .code-block pre code .hljs-selector-id,
-    .code-block pre code .hljs-selector-class { color: #f98181; }
+    .code-block pre code .hljs-selector-class { color: #e45649; }
     .code-block pre code .hljs-number,
     .code-block pre code .hljs-meta,
     .code-block pre code .hljs-built_in,
     .code-block pre code .hljs-builtin-name,
     .code-block pre code .hljs-literal,
     .code-block pre code .hljs-type,
-    .code-block pre code .hljs-params { color: #fbbc88; }
+    .code-block pre code .hljs-params { color: #c18401; }
     .code-block pre code .hljs-string,
     .code-block pre code .hljs-symbol,
-    .code-block pre code .hljs-bullet { color: #b9f18d; }
+    .code-block pre code .hljs-bullet { color: #50a14f; }
     .code-block pre code .hljs-title,
-    .code-block pre code .hljs-section { color: #faf594; }
+    .code-block pre code .hljs-section { color: #c18401; }
     .code-block pre code .hljs-keyword,
-    .code-block pre code .hljs-selector-tag { color: #70cff8; }
+    .code-block pre code .hljs-selector-tag { color: #a626a4; }
     .code-block pre code .hljs-emphasis { font-style: italic; }
     .code-block pre code .hljs-strong { font-weight: 700; }
-    .code-block pre code .hljs-name { color: #569cd6; }
-    .code-block pre code .hljs-attr { color: #9cdcfe; }
-    .code-block pre code .hljs-property { color: #9cdcfe; }
-    .code-block pre code .hljs-function { color: #dcdcaa; }
-    .code-block pre code .hljs-addition { color: #b5cea8; background: rgba(155, 185, 85, 0.1); }
-    .code-block pre code .hljs-deletion { color: #ce9178; background: rgba(206, 145, 120, 0.1); }
+    .code-block pre code .hljs-name { color: #e45649; }
+    .code-block pre code .hljs-attr { color: #986801; }
+    .code-block pre code .hljs-property { color: #4078f2; }
+    .code-block pre code .hljs-function { color: #4078f2; }
+    .code-block pre code .hljs-addition { color: #50a14f; background: rgba(80, 161, 79, 0.1); }
+    .code-block pre code .hljs-deletion { color: #e45649; background: rgba(228, 86, 73, 0.1); }
     .ProseMirror blockquote {
       border-left: 3px solid var(--vscode-textBlockQuote-border);
       margin: 1em 0;

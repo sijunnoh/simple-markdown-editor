@@ -2,6 +2,8 @@
 
 A rich WYSIWYG Markdown editor for VS Code with a modern toolbar interface.
 
+![Demo](public/simple-markdown-editor.gif)
+
 ## Features
 
 ### WYSIWYG Editing
@@ -30,7 +32,9 @@ Interactive checkboxes for task lists. Click to toggle completion.
 - Drag & drop images from your file system
 - Paste images from clipboard (auto-saved to workspace)
 - Resize images by dragging the corner handle
-- Edit or delete images via context menu
+- Edit or delete images via floating menu
+
+![Image editing](public/image.png)
 
 ### Links
 - Insert links via toolbar or keyboard shortcut
@@ -39,9 +43,10 @@ Interactive checkboxes for task lists. Click to toggle completion.
 
 ### Tables
 - Insert tables via toolbar
-- Edit row/column count
-- Selection outline when editing
-- Delete table option
+- Selection outline when focused
+- Delete table via floating menu
+
+![Table editing](public/table.png)
 
 ## Keyboard Shortcuts
 

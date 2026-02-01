@@ -394,7 +394,12 @@ function toWebviewUri(path: string, baseUri: string): string {
 	}
 	// Remove leading ./ if present
 	const cleanPath = path.replace(/^\.\//, "");
-	return `${baseUri}/${cleanPath}`;
+	// Encode path segments to handle spaces and special characters
+	const encodedPath = cleanPath
+		.split("/")
+		.map((segment) => encodeURIComponent(segment))
+		.join("/");
+	return `${baseUri}/${encodedPath}`;
 }
 
 // Parse markdown to HTML with task list support
