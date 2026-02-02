@@ -2,6 +2,12 @@
 
 All notable changes to Simple Markdown Editor will be documented in this file.
 
+## [1.0.8] - 2026-02-02
+
+### Improved
+
+- **VS Code Compatibility**: Lowered minimum VS Code version from 1.108.1 to 1.75.0 for wider compatibility
+
 ## [1.0.7] - 2026-02-02
 
 ### Fixed

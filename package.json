@@ -2,7 +2,7 @@
   "name": "simple-markdown-editor",
   "displayName": "Simple Markdown Editor",
   "description": "A rich WYSIWYG Markdown editor for VS Code with a modern toolbar interface",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "publisher": "mech2cs",
   "license": "MIT",
   "icon": "icon.png",
@@ -11,7 +11,7 @@
     "url": "https://github.com/sijunnoh/simple-markdown-editor"
   },
   "engines": {
-    "vscode": "^1.108.1"
+    "vscode": "^1.75.0"
   },
   "categories": [
     "Formatters",
@@ -136,7 +136,7 @@
     "@types/react": "^19.2.10",
     "@types/react-dom": "^19.2.3",
     "@types/turndown": "^5.0.6",
-    "@types/vscode": "^1.108.1",
+    "@types/vscode": "^1.75.0",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
     "esbuild": "^0.27.2",
