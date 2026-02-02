@@ -283,6 +283,60 @@ describe("turndownConfig", () => {
 
 			expect(result).toContain("- [x]");
 		});
+
+		it("should convert task item with data-checked attribute (TipTap format)", () => {
+			const html = `
+				<ul data-type="taskList">
+					<li data-type="taskItem" data-checked="true">
+						<label><input type="checkbox"><span></span></label>
+						<div>Checked task</div>
+					</li>
+				</ul>
+			`;
+			const result = turndown.turndown(html);
+
+			expect(result).toContain("- [x]");
+			expect(result).toContain("Checked task");
+		});
+
+		it("should convert unchecked task item with data-checked attribute (TipTap format)", () => {
+			const html = `
+				<ul data-type="taskList">
+					<li data-type="taskItem" data-checked="false">
+						<label><input type="checkbox"><span></span></label>
+						<div>Unchecked task</div>
+					</li>
+				</ul>
+			`;
+			const result = turndown.turndown(html);
+
+			expect(result).toContain("- [ ]");
+			expect(result).toContain("Unchecked task");
+		});
+
+		it("should convert GFM/marked format task list (unchecked)", () => {
+			const html = `
+				<ul>
+					<li><input type="checkbox" disabled> Buy groceries</li>
+				</ul>
+			`;
+			const result = turndown.turndown(html);
+
+			expect(result).toContain("- [ ]");
+			expect(result).toContain("Buy groceries");
+		});
+
+		it("should convert GFM/marked format task list (checked)", () => {
+			const html = `
+				<ul>
+					<li><input type="checkbox" checked disabled> Completed task</li>
+				</ul>
+			`;
+			const result = turndown.turndown(html);
+
+			expect(result).toContain("- [x]");
+			expect(result).toContain("Completed task");
+		});
 	});
 
 	describe("code block rule", () => {

@@ -8,15 +8,44 @@ export const turndown = new TurndownService({
 	emDelimiter: "*",
 });
 
-// Preserve paragraphs with proper spacing
+// Override default list item rule to use single space after marker
+turndown.addRule("listItem", {
+	filter: "li",
+	replacement: (content, node, options) => {
+		content = content
+			.replace(/^\n+/, "")
+			.replace(/\n+$/, "\n")
+			.replace(/\n/gm, "\n  ");
+
+		const parent = node.parentNode as HTMLElement;
+		const isOrdered = parent?.nodeName === "OL";
+		let prefix = options.bulletListMarker + " ";
+
+		if (isOrdered) {
+			const start = parent?.getAttribute("start");
+			const index = Array.from(parent.children).indexOf(node as HTMLElement);
+			const num = start ? Number(start) + index : index + 1;
+			prefix = num + ". ";
+		}
+
+		return prefix + content + "\n";
+	},
+});
+
+// Preserve paragraphs with proper spacing (but not inside list items)
 turndown.addRule("preserveParagraphs", {
 	filter: "p",
-	replacement: (content) => {
+	replacement: (content, node) => {
+		// Don't add extra newlines for paragraphs inside list items
+		const parent = node.parentNode;
+		if (parent && (parent.nodeName === "LI" || (parent as Element).getAttribute?.("data-type") === "taskItem")) {
+			return content;
+		}
 		return content + "\n\n";
 	},
 });
 
-// Task list item rule
+// Task list item rule (TipTap format with data-type attribute)
 turndown.addRule("taskListItem", {
 	filter: (node) => {
 		return (
@@ -25,12 +54,42 @@ turndown.addRule("taskListItem", {
 		);
 	},
 	replacement: (content, node) => {
-		const checkbox = (node as HTMLElement).querySelector(
-			'input[type="checkbox"]',
-		);
-		const checked = checkbox?.hasAttribute("checked") ? "x" : " ";
+		const element = node as HTMLElement;
+		// TipTap uses data-checked attribute on the li element
+		const dataChecked = element.getAttribute("data-checked");
+		// Also check for checkbox input as fallback
+		const checkbox = element.querySelector('input[type="checkbox"]');
+		const isChecked = dataChecked === "true" || checkbox?.hasAttribute("checked");
+		const checked = isChecked ? "x" : " ";
 		const cleanContent = content.replace(/^\s*\[.\]\s*/, "").trim();
 		return `- [${checked}] ${cleanContent}\n`;
+	},
+});
+
+// Task list item rule (marked/GFM format - li containing checkbox as first element)
+turndown.addRule("taskListItemGfm", {
+	filter: (node) => {
+		if (node.nodeName !== "LI") return false;
+		// Check if first child (or first element child) is a checkbox
+		const firstChild = node.firstChild;
+		const firstElement = node.firstElementChild;
+		const checkbox = (firstChild?.nodeName === "INPUT" && (firstChild as HTMLInputElement).type === "checkbox") ||
+			(firstElement?.nodeName === "INPUT" && (firstElement as HTMLInputElement).type === "checkbox");
+		return checkbox;
+	},
+	replacement: (_content, node) => {
+		const element = node as HTMLElement;
+		const checkbox = element.querySelector('input[type="checkbox"]') as HTMLInputElement;
+		const isChecked = checkbox?.checked || checkbox?.hasAttribute("checked");
+		const checked = isChecked ? "x" : " ";
+		// Get text content excluding the checkbox
+		let textContent = "";
+		element.childNodes.forEach((child) => {
+			if (child.nodeName !== "INPUT") {
+				textContent += child.textContent || "";
+			}
+		});
+		return `- [${checked}] ${textContent.trim()}\n`;
 	},
 });
 

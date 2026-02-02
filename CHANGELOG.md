@@ -2,6 +2,18 @@
 
 All notable changes to Simple Markdown Editor will be documented in this file.
 
+## [1.0.7] - 2026-02-02
+
+### Fixed
+
+- **Task List Checkbox**: Fixed checkboxes (`[x]`, `[ ]`) being lost when saving task lists
+- **List Item Spacing**: Fixed extra blank lines being added between list items
+
+### Improved
+
+- **List Formatting**: Consistent single space after list markers (`- item` instead of `-   item`)
+- **Nested List Indent**: Consistent 2-space indentation for nested lists
+
 ## [1.0.6] - 2026-02-02
 
 ### Added
