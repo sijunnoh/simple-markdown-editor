@@ -2,6 +2,12 @@
 
 All notable changes to Simple Markdown Editor will be documented in this file.
 
+## [1.0.9] - 2026-02-04
+
+### Improved
+
+- **README**: Added "How to Open" section with instructions for opening the editor
+
 ## [1.0.8] - 2026-02-02
 
 ### Improved
