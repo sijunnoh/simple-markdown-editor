@@ -2,7 +2,22 @@
 export type ViewMode = "editor" | "source" | "split";
 
 // Modal types
-export type ModalType = "link" | "image" | "table" | null;
+export type ModalType = "link" | "image" | "table" | "settings" | null;
+
+// Heading size presets
+export type HeadingSizePreset = "small" | "medium" | "large";
+
+// Indentation style
+export type IndentationStyle = "tabs" | "2spaces" | "4spaces";
+
+// Editor settings
+export interface EditorSettings {
+	imageDirectory: string;
+	emDelimiter: "*" | "_";
+	strongDelimiter: "**" | "__";
+	headingSizePreset: HeadingSizePreset;
+	indentationStyle: IndentationStyle;
+}
 
 // Link hover popup state
 export interface LinkHoverState {
@@ -54,7 +69,8 @@ export type ExtensionMessage =
 	| { type: "imageSelected"; path: string }
 	| { type: "filePathResolved"; path: string }
 	| { type: "deleteFileResult"; action: "delete" | "keep" | "cancel" }
-	| { type: "command"; command: string };
+	| { type: "command"; command: string }
+	| { type: "settings"; settings: EditorSettings };
 
 // Message types from webview to extension
 export type WebviewMessage =
@@ -66,4 +82,5 @@ export type WebviewMessage =
 	| { type: "resolveFilePath"; uri: string }
 	| { type: "deleteFile"; path: string }
 	| { type: "openLink"; url: string }
-	| { type: "getSuggestions"; query: string };
+	| { type: "getSuggestions"; query: string }
+	| { type: "updateSettings"; settings: EditorSettings };

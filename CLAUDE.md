@@ -6,7 +6,7 @@
 - **Type**: VS Code Extension
 - **Purpose**: Rich Markdown editor with toolbar
 - **Style**: WYSIWYG + Toolbar (with source view toggle)
-- **Version**: 1.0.9
+- **Version**: 1.0.12
 
 ## Tech Stack
 

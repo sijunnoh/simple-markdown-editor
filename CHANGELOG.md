@@ -2,6 +2,31 @@
 
 All notable changes to Simple Markdown Editor will be documented in this file.
 
+## [1.0.12] - 2026-02-04
+
+### Fixed
+
+- **Settings Persistence**: Fixed dual storage issue (localStorage removed, globalState only)
+
+## [1.0.11] - 2026-02-04
+
+### Added
+
+- **Settings Modal**: New settings panel accessible from toolbar
+  - **Heading Size**: Choose between Small, Medium, or Large heading sizes
+  - **Indentation Style**: Choose between Tabs, 2 Spaces, or 4 Spaces for list indentation
+  - **Image Directory**: Select preset or custom directory for saved images
+  - **Markdown Style**: Choose italic (`*` vs `_`) and bold (`**` vs `__`) delimiters
+- **Settings Persistence**: Settings saved in VS Code globalState (persists across sessions)
+
+### Fixed
+
+- **Heading 5 Size**: Fixed H5 being same size as body text (now slightly larger)
+
+### Improved
+
+- **Image Directory UI**: Dropdown with presets + custom option instead of plain text input
+
 ## [1.0.10] - 2026-02-04
 
 ### Improved

@@ -1,11 +1,39 @@
 import * as vscode from "vscode";
 
+// Editor settings interface (must match webview types)
+interface EditorSettings {
+	imageDirectory: string;
+	emDelimiter: "*" | "_";
+	strongDelimiter: "**" | "__";
+	headingSizePreset: "small" | "medium" | "large";
+	indentationStyle: "tabs" | "2spaces" | "4spaces";
+}
+
+const DEFAULT_SETTINGS: EditorSettings = {
+	imageDirectory: "./images",
+	emDelimiter: "*",
+	strongDelimiter: "**",
+	headingSizePreset: "medium",
+	indentationStyle: "2spaces",
+};
+
+const SETTINGS_KEY = "simple-markdown-editor.settings";
+
 export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 	public static readonly viewType = "simple-markdown-editor.markdownEditor";
 
 	private static activeWebviewPanel: vscode.WebviewPanel | undefined;
 
 	constructor(private readonly context: vscode.ExtensionContext) {}
+
+	private getSettings(): EditorSettings {
+		const stored = this.context.globalState.get<EditorSettings>(SETTINGS_KEY);
+		return { ...DEFAULT_SETTINGS, ...stored };
+	}
+
+	private async saveSettings(settings: EditorSettings): Promise<void> {
+		await this.context.globalState.update(SETTINGS_KEY, settings);
+	}
 
 	public static sendCommand(command: string): void {
 		if (MarkdownEditorProvider.activeWebviewPanel) {
@@ -72,6 +100,15 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 			});
 		};
 
+		// Send settings to webview
+		const sendSettings = () => {
+			const settings = this.getSettings();
+			webviewPanel.webview.postMessage({
+				type: "settings",
+				settings,
+			});
+		};
+
 		// Listen for document changes (external changes only)
 		const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(
 			(e) => {
@@ -96,9 +133,10 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 					break;
 				case "ready":
 					updateWebview();
+					sendSettings();
 					break;
 				case "pickImage":
-					this.handleImagePick(webviewPanel, documentDir);
+					this.handleImagePick(webviewPanel, documentDir, this.getSettings().imageDirectory);
 					break;
 				case "openLink":
 					if (message.url) {
@@ -109,16 +147,19 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 					this.handleResolveFilePath(webviewPanel, documentDir, message.uri);
 					break;
 				case "pasteImage":
-					this.handlePasteImage(webviewPanel, documentDir, message.data);
+					this.handlePasteImage(webviewPanel, documentDir, message.data, this.getSettings().imageDirectory);
 					break;
 				case "dropFiles":
-					this.handleDropFiles(webviewPanel, documentDir, message.files);
+					this.handleDropFiles(webviewPanel, documentDir, message.files, this.getSettings().imageDirectory);
 					break;
 				case "getSuggestions":
 					this.handleGetSuggestions(webviewPanel, documentDir, message.query);
 					break;
 				case "deleteFile":
 					this.handleDeleteFile(webviewPanel, message.path, documentDir);
+					break;
+				case "updateSettings":
+					await this.saveSettings(message.settings);
 					break;
 			}
 		});
@@ -309,15 +350,18 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     .ProseMirror p:last-child {
       margin-bottom: 0;
     }
-    .ProseMirror h1, .ProseMirror h2, .ProseMirror h3 {
+    .ProseMirror h1, .ProseMirror h2, .ProseMirror h3, .ProseMirror h4, .ProseMirror h5 {
       margin: 1.5em 0 0.5em 0;
     }
-    .ProseMirror h1:first-child, .ProseMirror h2:first-child, .ProseMirror h3:first-child {
+    .ProseMirror h1:first-child, .ProseMirror h2:first-child, .ProseMirror h3:first-child,
+    .ProseMirror h4:first-child, .ProseMirror h5:first-child {
       margin-top: 0;
     }
-    .ProseMirror h1 { font-size: 2em; font-weight: 600; }
-    .ProseMirror h2 { font-size: 1.5em; font-weight: 600; }
-    .ProseMirror h3 { font-size: 1.25em; font-weight: 600; }
+    .ProseMirror h1 { font-size: var(--heading-h1-size, 2em); font-weight: 600; margin-left: var(--heading-h1-indent, 0); }
+    .ProseMirror h2 { font-size: var(--heading-h2-size, 1.5em); font-weight: 600; margin-left: var(--heading-h2-indent, 0); }
+    .ProseMirror h3 { font-size: var(--heading-h3-size, 1.25em); font-weight: 600; margin-left: var(--heading-h3-indent, 0); }
+    .ProseMirror h4 { font-size: var(--heading-h4-size, 1.1em); font-weight: 600; margin-left: var(--heading-h4-indent, 0); }
+    .ProseMirror h5 { font-size: var(--heading-h5-size, 1.05em); font-weight: 600; margin-left: var(--heading-h5-indent, 0); }
     .ProseMirror ul, .ProseMirror ol {
       padding-left: 1.5em;
       margin: 0 0 1em 0;
@@ -660,6 +704,24 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     .modal-form input:focus {
       border-color: var(--vscode-focusBorder);
     }
+    .modal-form select {
+      padding: 8px 32px 8px 10px;
+      border: 1px solid var(--vscode-input-border, var(--vscode-panel-border));
+      background: var(--vscode-input-background);
+      color: var(--vscode-input-foreground);
+      border-radius: 4px;
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+    .modal-form select:focus {
+      border-color: var(--vscode-focusBorder);
+    }
     .modal-actions {
       display: flex;
       justify-content: flex-end;
@@ -972,6 +1034,41 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       background: var(--vscode-menu-separatorBackground, var(--vscode-panel-border));
       margin: 4px 0;
     }
+
+    /* Settings Toggle */
+    .settings-toggle {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .settings-toggle > span {
+      font-size: 12px;
+      color: var(--vscode-descriptionForeground);
+    }
+    .toggle-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    .toggle-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid var(--vscode-input-border, var(--vscode-panel-border));
+      background: var(--vscode-input-background);
+      color: var(--vscode-input-foreground);
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: var(--vscode-editor-font-family);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .toggle-btn:hover {
+      background: var(--vscode-list-hoverBackground);
+    }
+    .toggle-btn.active {
+      background: var(--vscode-button-background);
+      color: var(--vscode-button-foreground);
+      border-color: var(--vscode-button-background);
+    }
   </style>
 </head>
 <body>
@@ -994,6 +1091,7 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 	private async handleImagePick(
 		webviewPanel: vscode.WebviewPanel,
 		documentDir: vscode.Uri,
+		imageDirectory: string,
 	): Promise<void> {
 		// Show file picker for images
 		const result = await vscode.window.showOpenDialog({
@@ -1012,9 +1110,11 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 		const fileName = sourceUri.path.split("/").pop() || "image.png";
 
 		try {
+			// Parse imageDirectory setting (remove leading ./ if present)
+			const dirName = imageDirectory.replace(/^\.\//, "");
 			const workspaceFolder = vscode.workspace.getWorkspaceFolder(documentDir);
 			const rootDir = workspaceFolder ? workspaceFolder.uri : documentDir;
-			const imagesDir = vscode.Uri.joinPath(rootDir, "images");
+			const imagesDir = vscode.Uri.joinPath(rootDir, dirName);
 			await vscode.workspace.fs.createDirectory(imagesDir);
 
 			const targetUri = await this._getUniqueUri(imagesDir, fileName);
@@ -1110,11 +1210,14 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 		webviewPanel: vscode.WebviewPanel,
 		documentDir: vscode.Uri,
 		base64Data: string,
+		imageDirectory: string,
 	) {
 		try {
+			// Parse imageDirectory setting (remove leading ./ if present)
+			const dirName = imageDirectory.replace(/^\.\//, "");
 			const workspaceFolder = vscode.workspace.getWorkspaceFolder(documentDir);
 			const rootDir = workspaceFolder ? workspaceFolder.uri : documentDir;
-			const imagesDir = vscode.Uri.joinPath(rootDir, "images");
+			const imagesDir = vscode.Uri.joinPath(rootDir, dirName);
 			await vscode.workspace.fs.createDirectory(imagesDir);
 
 			const buffer = Buffer.from(base64Data, "base64");
@@ -1142,11 +1245,14 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 		webviewPanel: vscode.WebviewPanel,
 		documentDir: vscode.Uri,
 		files: { name: string; data: string }[],
+		imageDirectory: string,
 	) {
 		try {
+			// Parse imageDirectory setting (remove leading ./ if present)
+			const dirName = imageDirectory.replace(/^\.\//, "");
 			const workspaceFolder = vscode.workspace.getWorkspaceFolder(documentDir);
 			const rootDir = workspaceFolder ? workspaceFolder.uri : documentDir;
-			const imagesDir = vscode.Uri.joinPath(rootDir, "images");
+			const imagesDir = vscode.Uri.joinPath(rootDir, dirName);
 			await vscode.workspace.fs.createDirectory(imagesDir);
 
 			for (const file of files) {

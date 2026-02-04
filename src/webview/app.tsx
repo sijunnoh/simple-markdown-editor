@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback, useLayoutEffect } from "react";
-import type { ViewMode, ModalType } from "./types";
+import type { ViewMode, ModalType, EditorSettings } from "./types";
 import { toWebviewUri } from "./utils/imagePaths";
 import {
 	useEditor,
@@ -21,7 +21,7 @@ import { common, createLowlight } from "lowlight";
 // Component imports
 import { Toolbar } from "./components/toolbar";
 import { HintsBar } from "./components/hints";
-import { LinkModal, ImageModal, TableModal } from "./components/modals";
+import { LinkModal, ImageModal, TableModal, SettingsModal } from "./components/modals";
 import {
 	TableFloatingMenu,
 	TableContextMenu,
@@ -46,6 +46,9 @@ import {
 	useTableMenu,
 } from "./hooks";
 
+// Utils
+import { updateTurndownOptions } from "./utils/markdown/turndownConfig";
+
 // Create lowlight instance with common languages
 const lowlight = createLowlight(common);
 
@@ -63,6 +66,15 @@ export function App() {
 	const [markdown, setMarkdown] = useState<string>("");
 	const [viewMode, setViewMode] = useState<ViewMode>("editor");
 	const [baseUri, setBaseUri] = useState<string>("");
+
+	// Settings state (initialized with defaults, actual settings loaded from extension via globalState)
+	const [settings, setSettings] = useState<EditorSettings>({
+		imageDirectory: "./images",
+		emDelimiter: "*",
+		strongDelimiter: "**",
+		headingSizePreset: "medium",
+		indentationStyle: "2spaces",
+	});
 
 	// Modal state
 	const [modalType, setModalType] = useState<ModalType>(null);
@@ -402,6 +414,57 @@ export function App() {
 		setTableCols("3");
 	}, []);
 
+	// Settings handlers
+	const openSettingsModal = useCallback(() => {
+		setModalType("settings");
+	}, []);
+
+	const handleSettingsSave = useCallback((newSettings: EditorSettings) => {
+		setSettings(newSettings);
+		updateTurndownOptions(newSettings);
+		// Send full settings to extension for persistence
+		vscode.postMessage({
+			type: "updateSettings",
+			settings: newSettings,
+		});
+	}, []);
+
+	// Listen for settings from extension (on ready)
+	useEffect(() => {
+		const handleMessage = (event: MessageEvent) => {
+			const message = event.data;
+			if (message.type === "settings" && message.settings) {
+				setSettings(message.settings);
+				updateTurndownOptions(message.settings);
+				applyHeadingSizePreset(message.settings.headingSizePreset);
+			}
+		};
+		window.addEventListener("message", handleMessage);
+		return () => window.removeEventListener("message", handleMessage);
+	}, []);
+
+	// Apply settings on mount and when settings change
+	useEffect(() => {
+		updateTurndownOptions(settings);
+		applyHeadingSizePreset(settings.headingSizePreset);
+	}, [settings]);
+
+	// Apply heading size CSS variables
+	const applyHeadingSizePreset = (preset: EditorSettings["headingSizePreset"]) => {
+		const root = document.documentElement;
+		const sizes = {
+			small: { h1: "1.6em", h2: "1.3em", h3: "1.15em", h4: "1.05em", h5: "1em" },
+			medium: { h1: "2em", h2: "1.5em", h3: "1.25em", h4: "1.1em", h5: "1.05em" },
+			large: { h1: "2.4em", h2: "1.8em", h3: "1.5em", h4: "1.25em", h5: "1.1em" },
+		};
+		const selected = sizes[preset] || sizes.medium;
+		root.style.setProperty("--heading-h1-size", selected.h1);
+		root.style.setProperty("--heading-h2-size", selected.h2);
+		root.style.setProperty("--heading-h3-size", selected.h3);
+		root.style.setProperty("--heading-h4-size", selected.h4);
+		root.style.setProperty("--heading-h5-size", selected.h5);
+	};
+
 	return (
 		<div className="simple-markdown-editor">
 			<Toolbar
@@ -411,6 +474,7 @@ export function App() {
 				onLinkClick={openLinkModal}
 				onImageClick={openImagePicker}
 				onTableClick={openTableModal}
+				onSettingsClick={openSettingsModal}
 			/>
 			<div className="editor-container">
 				{(viewMode === "editor" || viewMode === "split") && (
@@ -501,6 +565,13 @@ export function App() {
 				tableCols={tableCols}
 				setTableCols={setTableCols}
 				onSubmit={handleTableSubmit}
+			/>
+
+			<SettingsModal
+				isOpen={modalType === "settings"}
+				onClose={closeModal}
+				settings={settings}
+				onSave={handleSettingsSave}
 			/>
 
 			{suggestionVisible && (

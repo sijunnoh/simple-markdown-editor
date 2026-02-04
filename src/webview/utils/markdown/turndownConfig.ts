@@ -1,4 +1,5 @@
 import TurndownService from "turndown";
+import type { EditorSettings } from "../../types";
 
 export const turndown = new TurndownService({
 	headingStyle: "atx",
@@ -8,6 +9,35 @@ export const turndown = new TurndownService({
 	emDelimiter: "*",
 });
 
+// Get indentation string based on setting
+function getIndentString(style: EditorSettings["indentationStyle"]): string {
+	switch (style) {
+		case "tabs":
+			return "\t";
+		case "4spaces":
+			return "    ";
+		case "2spaces":
+		default:
+			return "  ";
+	}
+}
+
+// Current indentation string (updated when settings change)
+let currentIndent = "  ";
+
+// Update turndown options based on editor settings
+export function updateTurndownOptions(settings: EditorSettings) {
+	turndown.options.emDelimiter = settings.emDelimiter;
+	currentIndent = getIndentString(settings.indentationStyle);
+	// strongDelimiter is not a direct option, we need a custom rule
+	turndown.addRule("strong", {
+		filter: ["strong", "b"],
+		replacement: (content) => {
+			return settings.strongDelimiter + content + settings.strongDelimiter;
+		},
+	});
+}
+
 // Override default list item rule to use single space after marker
 turndown.addRule("listItem", {
 	filter: "li",
@@ -15,7 +45,7 @@ turndown.addRule("listItem", {
 		content = content
 			.replace(/^\n+/, "")
 			.replace(/\n+$/, "\n")
-			.replace(/\n/gm, "\n  ");
+			.replace(/\n/gm, "\n" + currentIndent);
 
 		const parent = node.parentNode as HTMLElement;
 		const isOrdered = parent?.nodeName === "OL";

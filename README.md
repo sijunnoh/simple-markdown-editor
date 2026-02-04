@@ -66,6 +66,17 @@ Interactive checkboxes for task lists. Click to toggle completion.
 
 ![Table context menu](public/table-context-menu.png)
 
+### Settings
+
+Customize your editing experience via the settings panel (gear icon in toolbar):
+
+- **Heading Size**: Small, Medium, or Large
+- **Indentation**: Tabs, 2 Spaces, or 4 Spaces
+- **Image Directory**: Choose where images are saved
+- **Markdown Style**: Italic and bold delimiter preferences
+
+![Settings](public/settings.png)
+
 ## Keyboard Shortcuts
 
 | Shortcut               | Action                                 |

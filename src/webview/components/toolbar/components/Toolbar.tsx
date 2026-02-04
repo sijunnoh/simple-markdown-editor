@@ -21,6 +21,7 @@ import {
 	ImageIcon,
 	LinkIcon,
 	TableIcon,
+	SettingsIcon,
 } from "lucide-react";
 
 interface ToolbarProps {
@@ -30,6 +31,7 @@ interface ToolbarProps {
 	onLinkClick: () => void;
 	onImageClick: () => void;
 	onTableClick: () => void;
+	onSettingsClick: () => void;
 }
 
 export function Toolbar({
@@ -39,6 +41,7 @@ export function Toolbar({
 	onLinkClick,
 	onImageClick,
 	onTableClick,
+	onSettingsClick,
 }: ToolbarProps) {
 	if (!editor) return null;
 
@@ -197,6 +200,12 @@ export function Toolbar({
 					active={viewMode === "split"}
 				/>
 			</div>
+
+			<ToolbarButton
+				icon={<SettingsIcon size={16} />}
+				label="Settings"
+				onClick={onSettingsClick}
+			/>
 		</div>
 	);
 }
