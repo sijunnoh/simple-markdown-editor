@@ -25,7 +25,7 @@ Full-featured toolbar with quick access to:
 - **Headings**: H1 through H5
 - **Lists**: Bullet, Numbered, and Task Lists
 - **Blocks**: Blockquote, Code Block
-- **Media**: Links and Images
+- **Media**: Links, Images, and Tables
 
 ### View Modes
 
@@ -75,6 +75,8 @@ Customize your editing experience via the settings panel (gear icon in toolbar):
 - **Image Directory**: Choose where images are saved
 - **Markdown Style**: Italic and bold delimiter preferences
 
+Settings are automatically saved and persist across sessions.
+
 ![Settings](public/settings.png)
 
 ## Keyboard Shortcuts
@@ -100,7 +102,7 @@ Type these patterns followed by a space to quickly format:
 | `1. `        | Numbered list   |
 | `[] `        | Task list       |
 | `> `         | Blockquote      |
-| ``` ` `` ``` | Code block      |
+| ` ``` `      | Code block      |
 | `---`        | Horizontal rule |
 
 ## Requirements

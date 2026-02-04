@@ -2,6 +2,12 @@
 
 All notable changes to Simple Markdown Editor will be documented in this file.
 
+## [1.0.13] - 2026-02-05
+
+### Improved
+
+- **README**: Updated demo GIF
+
 ## [1.0.12] - 2026-02-04
 
 ### Fixed
