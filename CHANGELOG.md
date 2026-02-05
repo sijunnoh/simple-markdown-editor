@@ -2,6 +2,12 @@
 
 All notable changes to Simple Markdown Editor will be documented in this file.
 
+## [1.2.2] - 2026-02-06
+
+### Fixed
+
+- **Explorer Context Menu**: Fixed "Open with Simple Markdown Editor" not working when the file is not actively selected in the explorer (now uses the right-clicked file URI directly)
+
 ## [1.2.1] - 2026-02-05
 
 ### Fixed

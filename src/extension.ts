@@ -57,12 +57,12 @@ export function activate(context: vscode.ExtensionContext) {
 		MarkdownEditorProvider.sendCommand('toggleStrike');
 	});
 
-	const openWithWysiwygCommand = vscode.commands.registerCommand('simple-markdown-editor.openWithWysiwyg', async () => {
-		const activeEditor = vscode.window.activeTextEditor;
-		if (activeEditor && activeEditor.document.uri.fsPath.endsWith('.md')) {
+	const openWithWysiwygCommand = vscode.commands.registerCommand('simple-markdown-editor.openWithWysiwyg', async (uri?: vscode.Uri) => {
+		const targetUri = uri ?? vscode.window.activeTextEditor?.document.uri;
+		if (targetUri && targetUri.fsPath.endsWith('.md')) {
 			await vscode.commands.executeCommand(
 				'vscode.openWith',
-				activeEditor.document.uri,
+				targetUri,
 				'simple-markdown-editor.markdownEditor'
 			);
 		}
