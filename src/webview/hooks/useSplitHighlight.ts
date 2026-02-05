@@ -91,11 +91,32 @@ export function buildNodeToLineMapping(doc: ProseMirrorNode, markdown: string): 
 
 			case "bulletList":
 			case "orderedList":
-			case "taskList":
+			case "taskList": {
+				// Determine which markers to match for lookahead (avoid consuming a different list type)
+				const isBulletType = node.type.name === "bulletList" || node.type.name === "taskList";
+				const isOrderedType = node.type.name === "orderedList";
 				// Consume all consecutive list lines (including indented continuation)
+				// Also handles "loose lists" where blank lines separate items
 				while (currentLine < lines.length) {
 					const trimmed = lines[currentLine].trim();
-					if (trimmed === "") break;
+					if (trimmed === "") {
+						// Look ahead past blank lines to see if list continues (loose list)
+						let lookAhead = currentLine + 1;
+						while (lookAhead < lines.length && lines[lookAhead].trim() === "") {
+							lookAhead++;
+						}
+						if (lookAhead < lines.length) {
+							const nextTrimmed = lines[lookAhead].trim();
+							const isMatchingItem =
+								(isBulletType && /^[-*+]\s/.test(nextTrimmed)) ||
+								(isOrderedType && /^\d+\.\s/.test(nextTrimmed));
+							if (isMatchingItem) {
+								currentLine = lookAhead;
+								continue;
+							}
+						}
+						break;
+					}
 					// List markers or indented continuation lines
 					const isListItem = /^[-*+]\s/.test(trimmed) ||
 						/^\d+\.\s/.test(trimmed) ||
@@ -110,6 +131,7 @@ export function buildNodeToLineMapping(doc: ProseMirrorNode, markdown: string): 
 				phantomMode = false;
 				inlineImageCount = 0;
 				break;
+			}
 
 			case "blockquote":
 				while (currentLine < lines.length && lines[currentLine].trim().startsWith(">")) {

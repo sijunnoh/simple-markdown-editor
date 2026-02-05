@@ -2,6 +2,15 @@
 
 All notable changes to Simple Markdown Editor will be documented in this file.
 
+## [1.2.3] - 2026-02-06
+
+### Fixed
+
+- **Split View Highlight**: Fixed highlight sync for loose lists (lists with blank lines between items)
+  - Bullet list items separated by blank lines are now correctly consumed as a single list block
+  - Added look-ahead logic that skips blank lines when the same list type continues
+  - Type-aware matching prevents crossing list types (bullet vs ordered) across blank lines
+
 ## [1.2.2] - 2026-02-06
 
 ### Fixed

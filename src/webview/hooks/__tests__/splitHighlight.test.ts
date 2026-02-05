@@ -394,6 +394,61 @@ describe("buildNodeToLineMapping", () => {
 		expect(findMappingForLine(mapping, 50)).toBe(13);
 	});
 
+	it("should handle loose bullet list (blank lines between items)", () => {
+		const doc = mockDoc([
+			mockNode("heading", "Bullet List"),
+			mockNode("bulletList", "First itemSecond itemNested itemAnother nestedThird item"),
+			mockNode("heading", "Numbered List"),
+			mockNode("orderedList", "Step oneStep twoStep three"),
+		]);
+		const markdown = [
+			"### Bullet List",          // line 0
+			"",                          // line 1
+			"- First item",              // line 2
+			"- Second item",             // line 3
+			"  - Nested item",           // line 4
+			"  - Another nested",        // line 5
+			"",                          // line 6 (loose list blank line)
+			"- Third item",              // line 7
+			"",                          // line 8
+			"### Numbered List",         // line 9
+			"",                          // line 10
+			"1. Step one",               // line 11
+			"2. Step two",               // line 12
+			"3. Step three",             // line 13
+		].join("\n");
+		const mapping = buildNodeToLineMapping(doc, markdown);
+
+		expect(mapping).toHaveLength(4);
+		expect(mapping[0]).toEqual({ start: 0, end: 0 });   // ### Bullet List
+		expect(mapping[1]).toEqual({ start: 2, end: 7 });   // bullet list (including Third item after blank)
+		expect(mapping[2]).toEqual({ start: 9, end: 9 });   // ### Numbered List
+		expect(mapping[3]).toEqual({ start: 11, end: 13 }); // ordered list
+	});
+
+	it("should handle loose ordered list (blank lines between items)", () => {
+		const doc = mockDoc([
+			mockNode("orderedList", "FirstSecondThird"),
+		]);
+		const markdown = "1. First\n\n2. Second\n\n3. Third";
+		const mapping = buildNodeToLineMapping(doc, markdown);
+
+		expect(mapping).toEqual([{ start: 0, end: 4 }]);
+	});
+
+	it("should not cross list types when looking ahead past blank lines", () => {
+		const doc = mockDoc([
+			mockNode("bulletList", "Bullet item"),
+			mockNode("orderedList", "Ordered item"),
+		]);
+		const markdown = "- Bullet item\n\n1. Ordered item";
+		const mapping = buildNodeToLineMapping(doc, markdown);
+
+		expect(mapping).toHaveLength(2);
+		expect(mapping[0]).toEqual({ start: 0, end: 0 }); // bullet list stops, doesn't consume ordered
+		expect(mapping[1]).toEqual({ start: 2, end: 2 }); // ordered list
+	});
+
 	it("should handle inline badge images extracted as block images", () => {
 		// When TipTap has inline: false for images, patterns like [![badge](img)](link)
 		// inside a paragraph cause ProseMirror to split into fragments + block images
