@@ -2,6 +2,12 @@
 
 All notable changes to Simple Markdown Editor will be documented in this file.
 
+## [1.1.2] - 2026-02-05
+
+### Improved
+
+- **Toolbar Layout**: Right-side buttons (view toggle, search, settings) now align to the right edge when space allows, scroll together when space is limited
+
 ## [1.1.1] - 2026-02-05
 
 ### Fixed

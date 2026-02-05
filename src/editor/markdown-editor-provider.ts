@@ -222,8 +222,8 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       background: var(--vscode-sideBar-background);
       top: 0;
       z-index: 10;
-      overflow-x: auto;
       flex-shrink: 0;
+      overflow-x: auto;
       scrollbar-width: thin;
       scrollbar-color: var(--vscode-scrollbarSlider-background) transparent;
     }
@@ -253,8 +253,8 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       flex-shrink: 0;
     }
     .toolbar-spacer {
-      width: 16px;
-      flex-shrink: 0;
+      flex: 1;
+      min-width: 16px;
     }
     .toolbar .view-toggle {
       flex-shrink: 0;
