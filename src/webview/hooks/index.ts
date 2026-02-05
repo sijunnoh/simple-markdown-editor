@@ -6,3 +6,4 @@ export { useSuggestions } from "./useSuggestions";
 export { useEditorSetup } from "./useEditorSetup";
 export { useTableMenu } from "./useTableMenu";
 export { useSearch } from "./useSearch";
+export { useSplitHighlight } from "./useSplitHighlight";

@@ -22,6 +22,7 @@ import { common, createLowlight } from "lowlight";
 import { Toolbar } from "./components/toolbar";
 import { HintsBar } from "./components/hints";
 import { SearchPanel, SearchHighlightOverlay } from "./components/search";
+import { SplitHighlightOverlay } from "./components/split-highlight";
 import { LinkModal, ImageModal, TableModal, SettingsModal } from "./components/modals";
 import {
 	TableFloatingMenu,
@@ -46,6 +47,7 @@ import {
 	useSuggestions,
 	useTableMenu,
 	useSearch,
+	useSplitHighlight,
 } from "./hooks";
 
 // Utils
@@ -91,6 +93,7 @@ export function App() {
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const textareaScrollRef = useRef<number>(0);
 	const [textareaScrollTop, setTextareaScrollTop] = useState(0);
+	const [textareaScrollbarWidth, setTextareaScrollbarWidth] = useState(0);
 
 	// Editor setup
 	const editor = useEditor({
@@ -290,6 +293,51 @@ export function App() {
 		textareaRef,
 		isTextareaFocused: refs.isTextareaFocused,
 	});
+
+	// Split view highlight hook
+	const { sourceLines, editorBlockIndex, updateFromSource } = useSplitHighlight({
+		editor,
+		viewMode,
+		markdown,
+		textareaRef,
+	});
+
+	// Apply/remove highlight class on editor blocks
+	useEffect(() => {
+		if (!editor) return;
+		const editorElement = editor.view.dom as HTMLElement;
+		const blocks = editorElement.querySelectorAll(":scope > *");
+
+		blocks.forEach((block, index) => {
+			if (index === editorBlockIndex) {
+				block.classList.add("split-highlight-block");
+			} else {
+				block.classList.remove("split-highlight-block");
+			}
+		});
+
+		return () => {
+			blocks.forEach((block) => {
+				block.classList.remove("split-highlight-block");
+			});
+		};
+	}, [editor, editorBlockIndex]);
+
+	// Track textarea scrollbar width (changes on resize, e.g., sidebar open/close)
+	useEffect(() => {
+		const textarea = textareaRef.current;
+		if (!textarea) return;
+
+		const updateScrollbarWidth = () => {
+			setTextareaScrollbarWidth(textarea.offsetWidth - textarea.clientWidth);
+		};
+
+		updateScrollbarWidth();
+
+		const observer = new ResizeObserver(updateScrollbarWidth);
+		observer.observe(textarea);
+		return () => observer.disconnect();
+	}, [viewMode]);
 
 	// Keyboard shortcuts hook (must be after useSearch to access openSearch)
 	useKeyboardShortcuts({
@@ -555,6 +603,14 @@ export function App() {
 								scrollTop={textareaScrollTop}
 							/>
 						)}
+						{!searchOpen && viewMode === "split" && sourceLines && (
+							<SplitHighlightOverlay
+								text={markdown}
+								highlightLines={sourceLines}
+								scrollTop={textareaScrollTop}
+								scrollbarWidth={textareaScrollbarWidth}
+							/>
+						)}
 						<textarea
 							ref={textareaRef}
 							value={markdown}
@@ -564,9 +620,13 @@ export function App() {
 							onCompositionStart={handleSourceCompositionStart}
 							onCompositionEnd={handleSourceCompositionEnd}
 							onScroll={(e) => {
-								textareaScrollRef.current = e.currentTarget.scrollTop;
-								setTextareaScrollTop(e.currentTarget.scrollTop);
+								const ta = e.currentTarget;
+								textareaScrollRef.current = ta.scrollTop;
+								setTextareaScrollTop(ta.scrollTop);
+								setTextareaScrollbarWidth(ta.offsetWidth - ta.clientWidth);
 							}}
+							onClick={updateFromSource}
+							onKeyUp={updateFromSource}
 							spellCheck={false}
 							placeholder="Write markdown here..."
 						/>

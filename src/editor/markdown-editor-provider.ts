@@ -468,6 +468,38 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     .search-highlight-overlay mark {
       color: inherit;
     }
+    /* Split View Block Highlight */
+    .split-highlight-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 16px;
+      font-family: var(--vscode-editor-font-family);
+      font-size: var(--vscode-editor-font-size, 14px);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      pointer-events: none;
+      color: transparent;
+      background: var(--vscode-editor-background);
+      overflow: hidden;
+    }
+    .split-highlight-line {
+      background: var(--vscode-editor-findMatchHighlightBackground, rgba(234, 179, 8, 0.15));
+      border-radius: 2px;
+      padding-right: 9999px;
+      margin-right: -9999px;
+    }
+    .source-pane:has(.split-highlight-overlay) textarea {
+      background: transparent;
+      caret-color: var(--vscode-editor-foreground);
+    }
+    .ProseMirror > .split-highlight-block {
+      background: var(--vscode-editor-findMatchHighlightBackground, rgba(234, 179, 8, 0.15));
+      border-radius: 3px;
+      transition: background 0.15s ease;
+    }
     /* ProseMirror Editor */
     .ProseMirror {
       outline: none;

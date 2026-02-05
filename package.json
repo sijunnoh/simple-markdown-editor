@@ -2,7 +2,7 @@
   "name": "simple-markdown-editor",
   "displayName": "Simple Markdown Editor",
   "description": "A rich WYSIWYG Markdown editor for VS Code with a modern toolbar interface",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "publisher": "mech2cs",
   "license": "MIT",
   "icon": "icon.png",
@@ -58,7 +58,7 @@
       },
       {
         "command": "simple-markdown-editor.openWithWysiwyg",
-        "title": "Open with WYSIWYG Editor",
+        "title": "Open with Simple Markdown Editor",
         "icon": "$(notebook-render-output)"
       }
     ],
@@ -67,6 +67,13 @@
         {
           "command": "simple-markdown-editor.openWithWysiwyg",
           "when": "resourceExtname == '.md' && activeCustomEditorId != 'simple-markdown-editor.markdownEditor'",
+          "group": "navigation"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "simple-markdown-editor.openWithWysiwyg",
+          "when": "resourceExtname == '.md'",
           "group": "navigation"
         }
       ]

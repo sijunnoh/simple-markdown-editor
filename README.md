@@ -6,7 +6,7 @@ A rich WYSIWYG Markdown editor for VS Code with a modern toolbar interface.
 
 ## How to Open
 
-- **Right-click on .md file** → "Open With..." → "Simple Markdown Editor"
+- **Right-click on .md file** → "Open with Simple Markdown Editor" from context menu
 - **Title bar button** → Click the button in the top-right corner when viewing a Markdown file
 
 ![Title bar button](public/title-bar-button.png)
@@ -31,7 +31,9 @@ Full-featured toolbar with quick access to:
 
 - **Editor**: WYSIWYG editing mode
 - **Source**: Raw Markdown source editing
-- **Split**: Side-by-side editor and source view
+- **Split**: Side-by-side editor and source view with block highlight sync
+
+![Split view highlight](public/highlight.png)
 
 ### Code Blocks
 

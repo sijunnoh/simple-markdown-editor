@@ -136,19 +136,17 @@ turndown.addRule("taskList", {
 	},
 });
 
-// Image with width attribute
-turndown.addRule("imageWidth", {
-	filter: (node) => {
-		return node.nodeName === "IMG" && node.hasAttribute("width");
-	},
+// Image rule (block-level: TipTap uses inline: false)
+turndown.addRule("blockImage", {
+	filter: "img",
 	replacement: (_content, node) => {
 		const src = (node as HTMLElement).getAttribute("src") || "";
 		const alt = (node as HTMLElement).getAttribute("alt") || "";
 		const width = (node as HTMLElement).getAttribute("width");
 		if (width) {
-			return `<img src="${src}" alt="${alt}" width="${width}">`;
+			return `\n\n<img src="${src}" alt="${alt}" width="${width}">\n\n`;
 		}
-		return `![${alt}](${src})`;
+		return `\n\n![${alt}](${src})\n\n`;
 	},
 });
 

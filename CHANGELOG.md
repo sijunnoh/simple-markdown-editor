@@ -2,6 +2,13 @@
 
 All notable changes to Simple Markdown Editor will be documented in this file.
 
+## [1.2.0] - 2026-02-05
+
+### Added
+
+- **Split View Block Highlight**: Clicking a block in the WYSIWYG editor highlights the corresponding lines in source view, and vice versa
+- **Explorer Context Menu**: Right-click any `.md` file in the explorer to "Open with Simple Markdown Editor"
+
 ## [1.1.2] - 2026-02-05
 
 ### Improved

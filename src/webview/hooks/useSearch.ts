@@ -3,6 +3,7 @@ import type { Editor } from "@tiptap/react";
 import type { ViewMode, SearchMatch } from "../types";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
+import { escapeRegex, findTextMatches, replaceMatch, replaceAllMatches } from "../utils/search";
 
 interface UseSearchOptions {
 	editor: Editor | null;
@@ -11,11 +12,6 @@ interface UseSearchOptions {
 	setMarkdown: (md: string) => void;
 	textareaRef: React.RefObject<HTMLTextAreaElement | null>;
 	isTextareaFocused: React.MutableRefObject<boolean>;
-}
-
-// Escape special regex characters
-function escapeRegex(str: string): string {
-	return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 // Plugin key for search decorations
@@ -52,14 +48,7 @@ export function useSearch({
 
 	// Find matches in textarea (source view)
 	const findTextareaMatches = useCallback((term: string, text: string): SearchMatch[] => {
-		if (!term) return [];
-		const results: SearchMatch[] = [];
-		const regex = new RegExp(escapeRegex(term), "gi");
-		let match;
-		while ((match = regex.exec(text)) !== null) {
-			results.push({ from: match.index, to: match.index + match[0].length });
-		}
-		return results;
+		return findTextMatches(term, text);
 	}, []);
 
 	// Find matches in TipTap editor
@@ -160,10 +149,7 @@ export function useSearch({
 
 	// Replace current match in textarea
 	const replaceInTextarea = useCallback((match: SearchMatch) => {
-		const before = markdown.substring(0, match.from);
-		const after = markdown.substring(match.to);
-		const newMarkdown = before + replaceTerm + after;
-		setMarkdown(newMarkdown);
+		setMarkdown(replaceMatch(markdown, match, replaceTerm));
 	}, [markdown, replaceTerm, setMarkdown]);
 
 	// Replace current match in editor
@@ -197,9 +183,7 @@ export function useSearch({
 
 		if (getSearchInTextarea()) {
 			// Replace all in textarea (simple string replace)
-			const regex = new RegExp(escapeRegex(searchTerm), "gi");
-			const newMarkdown = markdown.replace(regex, replaceTerm);
-			setMarkdown(newMarkdown);
+			setMarkdown(replaceAllMatches(markdown, searchTerm, replaceTerm));
 		} else if (editor && !editor.isDestroyed) {
 			// Replace all in editor (reverse order to preserve positions)
 			const sortedMatches = [...matches].sort((a, b) => b.from - a.from);
