@@ -117,30 +117,28 @@ export function useSearch({
 		textarea.scrollTop = Math.max(0, scrollTop);
 	}, [textareaRef]);
 
-	// Navigate to current match in editor (without stealing focus)
-	const navigateToEditorMatch = useCallback((match: SearchMatch) => {
+	// Navigate to current match in editor
+	const navigateToEditorMatch = useCallback(() => {
 		if (!editor || editor.isDestroyed) return;
 
-		// Scroll to the match position without stealing focus
-		// The decoration will highlight the match
-		const coords = editor.view.coordsAtPos(match.from);
-		const editorElement = editor.view.dom.parentElement;
-		if (editorElement) {
-			const editorRect = editorElement.getBoundingClientRect();
-			const scrollTop = editorElement.scrollTop + (coords.top - editorRect.top) - editorElement.clientHeight / 2;
-			editorElement.scrollTop = Math.max(0, scrollTop);
-		}
+		// Wait for decoration to be applied, then scroll to the highlighted element
+		requestAnimationFrame(() => {
+			const highlightEl = editor.view.dom.querySelector(".search-highlight-current");
+			if (highlightEl) {
+				highlightEl.scrollIntoView({ block: "center", behavior: "instant" });
+			}
+		});
 	}, [editor]);
 
 	// Navigate to current match
 	const navigateToMatch = useCallback((index: number) => {
 		if (index < 0 || index >= matches.length) return;
 
-		const match = matches[index];
 		if (getSearchInTextarea()) {
+			const match = matches[index];
 			navigateToTextareaMatch(match);
 		} else {
-			navigateToEditorMatch(match);
+			navigateToEditorMatch();
 		}
 	}, [matches, getSearchInTextarea, navigateToTextareaMatch, navigateToEditorMatch]);
 

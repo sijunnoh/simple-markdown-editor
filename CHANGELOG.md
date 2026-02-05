@@ -2,6 +2,12 @@
 
 All notable changes to Simple Markdown Editor will be documented in this file.
 
+## [1.1.1] - 2026-02-05
+
+### Fixed
+
+- **Find & Replace**: Fixed scroll not following when navigating to matches outside viewport
+
 ## [1.1.0] - 2026-02-05
 
 ### Added
