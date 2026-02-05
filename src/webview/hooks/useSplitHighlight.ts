@@ -26,6 +26,13 @@ export function buildNodeToLineMapping(doc: ProseMirrorNode, markdown: string): 
 	const mapping: LineRange[] = [];
 	let currentLine = 0;
 
+	// Track phantom nodes: inline images extracted as block by TipTap (inline: false)
+	// so paragraph fragments from the same split are grouped together
+	let phantomMode = false;
+	// Count of inline image references in the most recently consumed paragraph lines.
+	// Used to detect phantom image nodes that were extracted from inline context.
+	let inlineImageCount = 0;
+
 	const skipEmptyLines = () => {
 		while (currentLine < lines.length && lines[currentLine].trim() === "") {
 			currentLine++;
@@ -42,14 +49,24 @@ export function buildNodeToLineMapping(doc: ProseMirrorNode, markdown: string): 
 		}
 
 		skipEmptyLines();
+
+		// If we've run out of markdown lines, map remaining nodes to the last range
+		if (currentLine >= lines.length) {
+			const prevRange = mapping.length > 0 ? mapping[mapping.length - 1] : { start: 0, end: 0 };
+			mapping.push({ start: prevRange.start, end: prevRange.end });
+			return;
+		}
+
 		const startLine = currentLine;
 
 		switch (node.type.name) {
 			case "heading":
-				// Heading is always a single line
+				// Heading is always a single line (handles both # heading and <h1>heading</h1>)
 				if (currentLine < lines.length) {
 					currentLine++;
 				}
+				phantomMode = false;
+				inlineImageCount = 0;
 				break;
 
 			case "codeBlock":
@@ -68,6 +85,8 @@ export function buildNodeToLineMapping(doc: ProseMirrorNode, markdown: string): 
 						currentLine++;
 					}
 				}
+				phantomMode = false;
+				inlineImageCount = 0;
 				break;
 
 			case "bulletList":
@@ -88,12 +107,16 @@ export function buildNodeToLineMapping(doc: ProseMirrorNode, markdown: string): 
 						break;
 					}
 				}
+				phantomMode = false;
+				inlineImageCount = 0;
 				break;
 
 			case "blockquote":
 				while (currentLine < lines.length && lines[currentLine].trim().startsWith(">")) {
 					currentLine++;
 				}
+				phantomMode = false;
+				inlineImageCount = 0;
 				break;
 
 			case "table":
@@ -105,22 +128,78 @@ export function buildNodeToLineMapping(doc: ProseMirrorNode, markdown: string): 
 						break;
 					}
 				}
+				phantomMode = false;
+				inlineImageCount = 0;
 				break;
 
 			case "horizontalRule":
-			case "image":
-				// Single-line nodes: ---, ![alt](url)
+				// Single-line node: ---
 				if (currentLine < lines.length) {
 					currentLine++;
 				}
+				phantomMode = false;
+				inlineImageCount = 0;
 				break;
 
-			default:
-				// paragraph and other nodes: consume until empty line
+			case "image": {
+				// Check if this image was extracted from an inline context
+				// (e.g., [![badge](img)](link) inside a paragraph that was already consumed)
+				if (inlineImageCount > 0) {
+					inlineImageCount--;
+					phantomMode = true;
+					const prevRange = mapping.length > 0
+						? mapping[mapping.length - 1]
+						: { start: startLine, end: startLine };
+					mapping.push({ start: prevRange.start, end: prevRange.end });
+					return;
+				}
+
+				// Check if the current line actually contains a standalone image
+				const trimmed = lines[currentLine]?.trim() ?? "";
+				if (trimmed.startsWith("![") || trimmed.startsWith("<img")) {
+					currentLine++;
+					phantomMode = false;
+				} else {
+					// Image doesn't match any line - treat as phantom
+					phantomMode = true;
+					const prevRange = mapping.length > 0
+						? mapping[mapping.length - 1]
+						: { start: startLine, end: startLine };
+					mapping.push({ start: prevRange.start, end: prevRange.end });
+					return;
+				}
+				inlineImageCount = 0;
+				break;
+			}
+
+			default: {
+				// Check if this paragraph is a fragment from a split block
+				// (happens when TipTap extracts inline images as block-level nodes,
+				// splitting the surrounding paragraph into fragments)
+				if (phantomMode && mapping.length > 0) {
+					const prevRange = mapping[mapping.length - 1];
+					const nodeText = node.textContent.trim();
+					if (nodeText) {
+						const prevLinesText = lines
+							.slice(prevRange.start, prevRange.end + 1)
+							.join(" ");
+						if (prevLinesText.includes(nodeText)) {
+							mapping.push({ start: prevRange.start, end: prevRange.end });
+							return;
+						}
+					}
+				}
+				// Regular paragraph: consume until empty line
+				phantomMode = false;
 				while (currentLine < lines.length && lines[currentLine].trim() !== "") {
 					currentLine++;
 				}
+				// Count inline image references in consumed lines for phantom detection
+				const consumedText = lines.slice(startLine, currentLine).join("\n");
+				const imgMatches = consumedText.match(/!\[|<img[\s>]/g);
+				inlineImageCount = imgMatches ? imgMatches.length : 0;
 				break;
+			}
 		}
 
 		const endLine = Math.max(startLine, currentLine - 1);

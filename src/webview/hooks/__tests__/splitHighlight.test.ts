@@ -393,6 +393,105 @@ describe("buildNodeToLineMapping", () => {
 		// Beyond last line → last block
 		expect(findMappingForLine(mapping, 50)).toBe(13);
 	});
+
+	it("should handle inline badge images extracted as block images", () => {
+		// When TipTap has inline: false for images, patterns like [![badge](img)](link)
+		// inside a paragraph cause ProseMirror to split into fragments + block images
+		const doc = mockDoc([
+			mockNode("heading", "b2b"),                     // from <h1>b2b</h1>
+			mockNode("paragraph", "master "),               // first fragment
+			mockNode("image", ""),                          // extracted badge image
+			mockNode("paragraph", " dev "),                 // second fragment
+			mockNode("image", ""),                          // extracted badge image
+			mockNode("paragraph", " preview "),             // third fragment
+			mockNode("image", ""),                          // extracted badge image
+			mockNode("paragraph", "This is a description."),// next real paragraph
+		]);
+		const markdown = [
+			"<h1>b2b</h1>",                                        // line 0
+			"",                                                     // line 1
+			"`master` [![Badge](img)](link) `dev` [![Badge](img)](link) `preview` [![Badge](img)](link)", // line 2
+			"",                                                     // line 3
+			"This is a description.",                                // line 4
+		].join("\n");
+
+		const mapping = buildNodeToLineMapping(doc, markdown);
+
+		expect(mapping).toHaveLength(8);
+		// heading maps to the HTML heading line
+		expect(mapping[0]).toEqual({ start: 0, end: 0 });
+		// all badge fragments + images map to the badge line
+		expect(mapping[1]).toEqual({ start: 2, end: 2 }); // "master " paragraph
+		expect(mapping[2]).toEqual({ start: 2, end: 2 }); // first phantom image
+		expect(mapping[3]).toEqual({ start: 2, end: 2 }); // " dev " fragment
+		expect(mapping[4]).toEqual({ start: 2, end: 2 }); // second phantom image
+		expect(mapping[5]).toEqual({ start: 2, end: 2 }); // " preview " fragment
+		expect(mapping[6]).toEqual({ start: 2, end: 2 }); // third phantom image
+		// real paragraph maps to its own line
+		expect(mapping[7]).toEqual({ start: 4, end: 4 });
+	});
+
+	it("should handle mixed phantom and real images", () => {
+		// A document with both inline-extracted images (phantom) and real block images
+		const doc = mockDoc([
+			mockNode("paragraph", "Text with badge"),       // fragment consuming badge line
+			mockNode("image", ""),                          // phantom image (no matching line)
+			mockNode("paragraph", ""),                      // empty para before real image
+			mockNode("image", ""),                          // real block image
+			mockNode("paragraph", ""),                      // empty para after real image
+			mockNode("paragraph", "After image"),           // normal paragraph
+		]);
+		const markdown = [
+			"Text with [![badge](img)](link) inline",       // line 0
+			"",                                             // line 1
+			"![real-image](photo.png)",                     // line 2
+			"",                                             // line 3
+			"After image",                                  // line 4
+		].join("\n");
+
+		const mapping = buildNodeToLineMapping(doc, markdown);
+
+		expect(mapping).toHaveLength(6);
+		expect(mapping[0]).toEqual({ start: 0, end: 0 }); // paragraph with badge text
+		expect(mapping[1]).toEqual({ start: 0, end: 0 }); // phantom image
+		expect(mapping[2]).toEqual({ start: 0, end: 0 }); // empty para
+		expect(mapping[3]).toEqual({ start: 2, end: 2 }); // real image (line starts with ![)
+		expect(mapping[4]).toEqual({ start: 2, end: 2 }); // empty para
+		expect(mapping[5]).toEqual({ start: 4, end: 4 }); // normal paragraph
+	});
+
+	it("should handle nodes when markdown lines run out", () => {
+		// More ProseMirror nodes than markdown can account for
+		const doc = mockDoc([
+			mockNode("paragraph", "Hello"),
+			mockNode("paragraph", "Extra node"),
+			mockNode("paragraph", "Another extra"),
+		]);
+		const markdown = "Hello";
+
+		const mapping = buildNodeToLineMapping(doc, markdown);
+
+		expect(mapping).toHaveLength(3);
+		expect(mapping[0]).toEqual({ start: 0, end: 0 });
+		// Extra nodes map to last known range
+		expect(mapping[1]).toEqual({ start: 0, end: 0 });
+		expect(mapping[2]).toEqual({ start: 0, end: 0 });
+	});
+
+	it("should not false-positive fragment detection for unrelated paragraphs", () => {
+		// Two unrelated paragraphs - second should NOT be treated as fragment of first
+		const doc = mockDoc([
+			mockNode("paragraph", "apple banana cherry"),
+			mockNode("paragraph", "date fig grape"),
+		]);
+		const markdown = "apple banana cherry\n\ndate fig grape";
+
+		const mapping = buildNodeToLineMapping(doc, markdown);
+
+		expect(mapping).toHaveLength(2);
+		expect(mapping[0]).toEqual({ start: 0, end: 0 });
+		expect(mapping[1]).toEqual({ start: 2, end: 2 }); // should map to own line, not line 0
+	});
 });
 
 describe("findMappingForLine", () => {

@@ -2,6 +2,16 @@
 
 All notable changes to Simple Markdown Editor will be documented in this file.
 
+## [1.2.1] - 2026-02-05
+
+### Fixed
+
+- **Split View Highlight**: Fixed highlight sync breaking on markdown with inline badge images (`[![badge](img)](link)`) and HTML heading tags (`<h1>`)
+  - Inline images extracted as block by TipTap no longer cause subsequent blocks to map to wrong lines
+  - Added phantom image detection via inline image reference counting
+  - Added paragraph fragment grouping for split paragraph nodes
+  - Added guard for documents where ProseMirror nodes outnumber markdown blocks
+
 ## [1.2.0] - 2026-02-05
 
 ### Added
