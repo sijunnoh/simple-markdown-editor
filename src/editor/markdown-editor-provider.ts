@@ -222,29 +222,29 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       background: var(--vscode-sideBar-background);
       top: 0;
       z-index: 10;
-      overflow: hidden;
+      overflow-x: auto;
       flex-shrink: 0;
+      scrollbar-width: thin;
+      scrollbar-color: var(--vscode-scrollbarSlider-background) transparent;
+    }
+    .toolbar::-webkit-scrollbar {
+      height: 4px;
+    }
+    .toolbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .toolbar::-webkit-scrollbar-thumb {
+      background: var(--vscode-scrollbarSlider-background);
+      border-radius: 2px;
+    }
+    .toolbar::-webkit-scrollbar-thumb:hover {
+      background: var(--vscode-scrollbarSlider-hoverBackground);
     }
     .toolbar-scroll {
       display: flex;
       align-items: center;
       gap: 2px;
-      overflow-x: auto;
-      scrollbar-width: thin;
-      scrollbar-color: var(--vscode-scrollbarSlider-background) transparent;
-    }
-    .toolbar-scroll::-webkit-scrollbar {
-      height: 4px;
-    }
-    .toolbar-scroll::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .toolbar-scroll::-webkit-scrollbar-thumb {
-      background: var(--vscode-scrollbarSlider-background);
-      border-radius: 2px;
-    }
-    .toolbar-scroll::-webkit-scrollbar-thumb:hover {
-      background: var(--vscode-scrollbarSlider-hoverBackground);
+      flex-shrink: 0;
     }
     .toolbar-group {
       display: flex;
@@ -253,14 +253,11 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       flex-shrink: 0;
     }
     .toolbar-spacer {
-      flex: 1;
-      min-width: 8px;
+      width: 16px;
+      flex-shrink: 0;
     }
     .toolbar .view-toggle {
       flex-shrink: 0;
-      position: relative;
-      z-index: 6;
-      background: var(--vscode-sideBar-background);
       padding-left: 8px;
     }
     .toolbar button {
@@ -289,10 +286,119 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       margin: 0 6px;
       flex-shrink: 0;
     }
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0;
+    }
     .md-icon {
       font-size: 11px;
       font-weight: 700;
       line-height: 16px;
+    }
+    /* Search Panel */
+    .search-panel {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: var(--vscode-editorWidget-background, var(--vscode-sideBar-background));
+      border-bottom: 1px solid var(--vscode-panel-border);
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .search-section {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .search-panel .search-input {
+      padding: 4px 8px;
+      border: 1px solid var(--vscode-input-border, var(--vscode-panel-border));
+      background: var(--vscode-input-background);
+      color: var(--vscode-input-foreground);
+      border-radius: 4px;
+      font-size: 13px;
+      outline: none;
+      width: 120px;
+      min-width: 80px;
+    }
+    .search-panel .search-input:focus {
+      border-color: var(--vscode-focusBorder);
+    }
+    .search-nav-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      border: none;
+      background: transparent;
+      color: var(--vscode-foreground);
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .search-nav-btn:hover {
+      background: var(--vscode-toolbar-hoverBackground);
+    }
+    .search-nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .search-count {
+      font-size: 12px;
+      color: var(--vscode-descriptionForeground);
+      min-width: 60px;
+      text-align: center;
+    }
+    .search-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--vscode-panel-border);
+      margin: 0 4px;
+    }
+    .search-replace-btn {
+      padding: 4px 8px;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      background: var(--vscode-button-secondaryBackground, rgba(255,255,255,0.1));
+      color: var(--vscode-button-secondaryForeground, var(--vscode-foreground));
+    }
+    .search-replace-btn:hover {
+      background: var(--vscode-button-secondaryHoverBackground, rgba(255,255,255,0.15));
+    }
+    .search-replace-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .search-close-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      border: none;
+      background: transparent;
+      color: var(--vscode-foreground);
+      cursor: pointer;
+      border-radius: 4px;
+      margin-left: auto;
+    }
+    .search-close-btn:hover {
+      background: var(--vscode-toolbar-hoverBackground);
+    }
+    /* Search Highlighting */
+    .search-highlight {
+      background: var(--vscode-editor-findMatchHighlightBackground, rgba(234, 179, 8, 0.4));
+      border-radius: 2px;
+      outline: 1px solid rgba(234, 179, 8, 0.5);
+    }
+    .search-highlight-current {
+      background: var(--vscode-editor-findMatchBackground, rgba(234, 179, 8, 0.7));
+      border-radius: 2px;
+      outline: 2px solid var(--vscode-editor-findMatchBorder, rgb(234, 179, 8));
     }
     /* Editor Container */
     .editor-container {
@@ -319,6 +425,8 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
     }
     .source-pane {
       border-left: 1px solid var(--vscode-panel-border);
+      position: relative;
+      overflow: hidden;
     }
     .source-pane textarea {
       width: 100%;
@@ -332,6 +440,33 @@ export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
       line-height: 1.6;
       resize: none;
       outline: none;
+      position: relative;
+      z-index: 2;
+    }
+    /* When highlight overlay is present, make textarea background transparent */
+    .source-pane:has(.search-highlight-overlay) textarea {
+      background: transparent;
+      caret-color: var(--vscode-editor-foreground);
+    }
+    .search-highlight-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 16px;
+      font-family: var(--vscode-editor-font-family);
+      font-size: var(--vscode-editor-font-size, 14px);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      pointer-events: none;
+      z-index: 1;
+      color: var(--vscode-editor-foreground);
+      background: var(--vscode-editor-background);
+    }
+    .search-highlight-overlay mark {
+      color: inherit;
     }
     /* ProseMirror Editor */
     .ProseMirror {

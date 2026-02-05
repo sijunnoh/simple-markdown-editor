@@ -84,3 +84,18 @@ export type WebviewMessage =
 	| { type: "openLink"; url: string }
 	| { type: "getSuggestions"; query: string }
 	| { type: "updateSettings"; settings: EditorSettings };
+
+// Search match position
+export interface SearchMatch {
+	from: number;
+	to: number;
+}
+
+// Search state
+export interface SearchState {
+	isOpen: boolean;
+	searchTerm: string;
+	replaceTerm: string;
+	matches: SearchMatch[];
+	currentIndex: number;
+}

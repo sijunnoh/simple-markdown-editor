@@ -12,6 +12,9 @@ interface UseKeyboardShortcutsOptions {
 	setMarkdown: (md: string) => void;
 	refs: MarkdownSyncRefs;
 	vscode: { postMessage: (message: unknown) => void };
+	onOpenSearch?: () => void;
+	onCloseSearch?: () => void;
+	isSearchOpen?: boolean;
 }
 
 export function useKeyboardShortcuts({
@@ -21,6 +24,9 @@ export function useKeyboardShortcuts({
 	setMarkdown,
 	refs,
 	vscode,
+	onOpenSearch,
+	onCloseSearch,
+	isSearchOpen,
 }: UseKeyboardShortcutsOptions) {
 	const { baseUriRef, isComposing, isTextareaFocused, lastSyncedMarkdownRef } = refs;
 
@@ -33,6 +39,23 @@ export function useKeyboardShortcuts({
 			if (isModKey && formattingKeys.includes(event.key.toLowerCase())) {
 				event.stopPropagation();
 				event.stopImmediatePropagation();
+			}
+
+			// Handle Cmd/Ctrl+F search
+			if (isModKey && event.key.toLowerCase() === "f") {
+				event.preventDefault();
+				event.stopPropagation();
+				event.stopImmediatePropagation();
+				onOpenSearch?.();
+				return;
+			}
+
+			// Handle Escape to close search
+			if (event.key === "Escape" && isSearchOpen) {
+				event.preventDefault();
+				event.stopPropagation();
+				onCloseSearch?.();
+				return;
 			}
 
 			// Handle Cmd/Ctrl+S save
@@ -76,5 +99,5 @@ export function useKeyboardShortcuts({
 		return () => {
 			window.removeEventListener("keydown", handleKeyDown, true);
 		};
-	}, [editor, viewMode, markdown, setMarkdown, refs, vscode]);
+	}, [editor, viewMode, markdown, setMarkdown, refs, vscode, onOpenSearch, onCloseSearch, isSearchOpen]);
 }

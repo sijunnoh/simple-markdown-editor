@@ -5,3 +5,4 @@ export { useFileDrop } from "./useFileDrop";
 export { useSuggestions } from "./useSuggestions";
 export { useEditorSetup } from "./useEditorSetup";
 export { useTableMenu } from "./useTableMenu";
+export { useSearch } from "./useSearch";

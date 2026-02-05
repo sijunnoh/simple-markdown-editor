@@ -21,6 +21,7 @@ import {
 	ImageIcon,
 	LinkIcon,
 	TableIcon,
+	SearchIcon,
 	SettingsIcon,
 } from "lucide-react";
 
@@ -31,7 +32,9 @@ interface ToolbarProps {
 	onLinkClick: () => void;
 	onImageClick: () => void;
 	onTableClick: () => void;
+	onSearchClick: () => void;
 	onSettingsClick: () => void;
+	isSearchOpen?: boolean;
 }
 
 export function Toolbar({
@@ -41,7 +44,9 @@ export function Toolbar({
 	onLinkClick,
 	onImageClick,
 	onTableClick,
+	onSearchClick,
 	onSettingsClick,
+	isSearchOpen,
 }: ToolbarProps) {
 	if (!editor) return null;
 
@@ -180,32 +185,41 @@ export function Toolbar({
 
 			<div className="toolbar-spacer" />
 
-			<div className="toolbar-group view-toggle">
+			<div className="toolbar-right">
+				<div className="toolbar-group view-toggle">
+					<ToolbarButton
+						icon={<PenLineIcon size={16} />}
+						label="Editor View"
+						onClick={() => onSetViewMode("editor")}
+						active={viewMode === "editor"}
+					/>
+					<ToolbarButton
+						icon={<span className="md-icon">MD</span>}
+						label="Markdown Source"
+						onClick={() => onSetViewMode("source")}
+						active={viewMode === "source"}
+					/>
+					<ToolbarButton
+						icon={<Columns2Icon size={16} />}
+						label="Split View"
+						onClick={() => onSetViewMode("split")}
+						active={viewMode === "split"}
+					/>
+				</div>
+
 				<ToolbarButton
-					icon={<PenLineIcon size={16} />}
-					label="Editor View"
-					onClick={() => onSetViewMode("editor")}
-					active={viewMode === "editor"}
+					icon={<SearchIcon size={16} />}
+					label="Find & Replace (Ctrl+F)"
+					onClick={onSearchClick}
+					active={isSearchOpen}
 				/>
+
 				<ToolbarButton
-					icon={<span className="md-icon">MD</span>}
-					label="Markdown Source"
-					onClick={() => onSetViewMode("source")}
-					active={viewMode === "source"}
-				/>
-				<ToolbarButton
-					icon={<Columns2Icon size={16} />}
-					label="Split View"
-					onClick={() => onSetViewMode("split")}
-					active={viewMode === "split"}
+					icon={<SettingsIcon size={16} />}
+					label="Settings"
+					onClick={onSettingsClick}
 				/>
 			</div>
-
-			<ToolbarButton
-				icon={<SettingsIcon size={16} />}
-				label="Settings"
-				onClick={onSettingsClick}
-			/>
 		</div>
 	);
 }

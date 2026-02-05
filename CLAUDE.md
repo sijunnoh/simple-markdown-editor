@@ -6,7 +6,7 @@
 - **Type**: VS Code Extension
 - **Purpose**: Rich Markdown editor with toolbar
 - **Style**: WYSIWYG + Toolbar (with source view toggle)
-- **Version**: 1.0.13
+- **Version**: 1.1.0
 
 ## Tech Stack
 
@@ -88,16 +88,18 @@ vsce package           # Create .vsix file
 - [x] Markdown input rules (# for headings, - for lists, etc.)
 - [x] Hints bar for shortcuts reference
 - [x] Title bar button to open with WYSIWYG editor
+- [x] Find & Replace with match highlighting
 
 ## Keyboard Shortcuts
 
-| Shortcut             | Action      |
-| -------------------- | ----------- |
-| Cmd/Ctrl + B         | Bold        |
-| Cmd/Ctrl + I         | Italic      |
-| Cmd/Ctrl + /         | Format Menu |
-| Cmd/Ctrl + Z         | Undo        |
-| Cmd/Ctrl + Shift + Z | Redo        |
+| Shortcut             | Action         |
+| -------------------- | -------------- |
+| Cmd/Ctrl + B         | Bold           |
+| Cmd/Ctrl + I         | Italic         |
+| Cmd/Ctrl + /         | Format Menu    |
+| Cmd/Ctrl + F         | Find & Replace |
+| Cmd/Ctrl + Z         | Undo           |
+| Cmd/Ctrl + Shift + Z | Redo           |
 
 ## Publishing Checklist
 

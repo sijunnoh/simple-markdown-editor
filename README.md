@@ -79,12 +79,25 @@ Settings are automatically saved and persist across sessions.
 
 ![Settings](public/settings.png)
 
+### Find & Replace
+
+Full-featured search and replace functionality:
+
+- Search with match highlighting in both Editor and Source views
+- Navigate between matches with Previous/Next buttons
+- Replace current match or Replace All
+- Match count display (e.g., "3/15")
+- Keyboard shortcuts: `Cmd/Ctrl+F` to open, `Enter` for next, `Shift+Enter` for previous, `Escape` to close
+
+![Find & Replace](public/search.png)
+
 ## Keyboard Shortcuts
 
 | Shortcut               | Action                                 |
 | ---------------------- | -------------------------------------- |
 | `Cmd/Ctrl + B`         | Bold                                   |
 | `Cmd/Ctrl + I`         | Italic                                 |
+| `Cmd/Ctrl + F`         | Find & Replace                         |
 | `Cmd/Ctrl + /`         | Format Menu (Link, Strike, Code, etc.) |
 | `Cmd/Ctrl + Z`         | Undo                                   |
 | `Cmd/Ctrl + Shift + Z` | Redo                                   |

@@ -21,6 +21,7 @@ import { common, createLowlight } from "lowlight";
 // Component imports
 import { Toolbar } from "./components/toolbar";
 import { HintsBar } from "./components/hints";
+import { SearchPanel, SearchHighlightOverlay } from "./components/search";
 import { LinkModal, ImageModal, TableModal, SettingsModal } from "./components/modals";
 import {
 	TableFloatingMenu,
@@ -44,6 +45,7 @@ import {
 	useFileDrop,
 	useSuggestions,
 	useTableMenu,
+	useSearch,
 } from "./hooks";
 
 // Utils
@@ -64,7 +66,7 @@ const vscode = acquireVsCodeApi();
 export function App() {
 	// Core state
 	const [markdown, setMarkdown] = useState<string>("");
-	const [viewMode, setViewMode] = useState<ViewMode>("editor");
+	const [viewMode, setViewMode] = useState<ViewMode>("split");
 	const [baseUri, setBaseUri] = useState<string>("");
 
 	// Settings state (initialized with defaults, actual settings loaded from extension via globalState)
@@ -88,6 +90,7 @@ export function App() {
 	const openLinkModalRef = useRef<(() => void) | null>(null);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const textareaScrollRef = useRef<number>(0);
+	const [textareaScrollTop, setTextareaScrollTop] = useState(0);
 
 	// Editor setup
 	const editor = useEditor({
@@ -245,9 +248,6 @@ export function App() {
 	// File drop hook
 	const { handleFileDrop, handlePaste, handleDragOver } = useFileDrop({ vscode });
 
-	// Keyboard shortcuts hook
-	useKeyboardShortcuts({ editor, viewMode, markdown, setMarkdown, refs, vscode });
-
 	// Table menu hook
 	const { tableMenu, handleEditorClick, handleEditorPaneClick } = useTableMenu({ editor, viewMode });
 
@@ -263,6 +263,41 @@ export function App() {
 		linkHover, handleEditorMouseOver, handleEditorMouseLeave,
 		handlePopupMouseEnter, handlePopupMouseLeave, handleOpenLink, handleEditLinkFromHover,
 	} = useLinkHover({ editor, setLinkUrl, setLinkText, setModalType, vscode });
+
+	// Search hook
+	const {
+		isOpen: searchOpen,
+		searchTerm,
+		replaceTerm,
+		matches: searchMatches,
+		currentIndex: searchIndex,
+		searchTarget,
+		focusTrigger: searchFocusTrigger,
+		openSearch,
+		toggleSearch,
+		closeSearch,
+		setSearchTerm,
+		setReplaceTerm,
+		goToNext: searchNext,
+		goToPrev: searchPrev,
+		replace: searchReplace,
+		replaceAll: searchReplaceAll,
+	} = useSearch({
+		editor,
+		viewMode,
+		markdown,
+		setMarkdown,
+		textareaRef,
+		isTextareaFocused: refs.isTextareaFocused,
+	});
+
+	// Keyboard shortcuts hook (must be after useSearch to access openSearch)
+	useKeyboardShortcuts({
+		editor, viewMode, markdown, setMarkdown, refs, vscode,
+		onOpenSearch: openSearch,
+		onCloseSearch: closeSearch,
+		isSearchOpen: searchOpen,
+	});
 
 	// Set up editor event handlers
 	useEffect(() => {
@@ -474,8 +509,26 @@ export function App() {
 				onLinkClick={openLinkModal}
 				onImageClick={openImagePicker}
 				onTableClick={openTableModal}
+				onSearchClick={toggleSearch}
 				onSettingsClick={openSettingsModal}
+				isSearchOpen={searchOpen}
 			/>
+			{searchOpen && (
+				<SearchPanel
+					searchTerm={searchTerm}
+					replaceTerm={replaceTerm}
+					currentIndex={searchIndex}
+					totalMatches={searchMatches.length}
+					focusTrigger={searchFocusTrigger}
+					onSearchChange={setSearchTerm}
+					onReplaceChange={setReplaceTerm}
+					onNext={searchNext}
+					onPrev={searchPrev}
+					onReplace={searchReplace}
+					onReplaceAll={searchReplaceAll}
+					onClose={closeSearch}
+				/>
+			)}
 			<div className="editor-container">
 				{(viewMode === "editor" || viewMode === "split") && (
 					<div
@@ -494,6 +547,14 @@ export function App() {
 				)}
 				{(viewMode === "source" || viewMode === "split") && (
 					<div className={`source-pane ${viewMode === "split" ? "split" : ""}`}>
+						{searchOpen && searchTarget === "textarea" && searchMatches.length > 0 && (
+							<SearchHighlightOverlay
+								text={markdown}
+								matches={searchMatches}
+								currentIndex={searchIndex}
+								scrollTop={textareaScrollTop}
+							/>
+						)}
 						<textarea
 							ref={textareaRef}
 							value={markdown}
@@ -504,6 +565,7 @@ export function App() {
 							onCompositionEnd={handleSourceCompositionEnd}
 							onScroll={(e) => {
 								textareaScrollRef.current = e.currentTarget.scrollTop;
+								setTextareaScrollTop(e.currentTarget.scrollTop);
 							}}
 							spellCheck={false}
 							placeholder="Write markdown here..."

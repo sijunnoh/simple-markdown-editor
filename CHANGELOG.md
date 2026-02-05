@@ -2,6 +2,24 @@
 
 All notable changes to Simple Markdown Editor will be documented in this file.
 
+## [1.1.0] - 2026-02-05
+
+### Added
+
+- **Find & Replace**: Full-featured search and replace functionality
+  - Search with match highlighting in both Editor and Source views
+  - Navigate between matches with Previous/Next buttons
+  - Replace current match or Replace All
+  - Match count display (e.g., "3/15")
+  - Keyboard shortcuts: `Cmd/Ctrl+F` to open, `Enter` for next, `Shift+Enter` for previous, `Escape` to close
+  - Toolbar button with toggle behavior
+  - Automatic view detection in Split view (searches the focused pane)
+
+### Improved
+
+- **Toolbar**: Horizontal scroll for narrow viewports (all buttons scroll together)
+- **Search Panel**: Responsive layout with flex-wrap for narrow widths
+
 ## [1.0.13] - 2026-02-05
 
 ### Improved
