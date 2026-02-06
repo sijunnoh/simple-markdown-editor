@@ -28,14 +28,6 @@ export interface LinkHoverState {
 	linkElement: HTMLAnchorElement | null;
 }
 
-// Image hover state (for future use)
-export interface ImageHoverState {
-	visible: boolean;
-	src: string;
-	alt: string;
-	position: { x: number; y: number };
-}
-
 // Suggestion item for autocomplete
 export interface Suggestion {
 	label: string;

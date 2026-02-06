@@ -7,11 +7,6 @@ export function activate(context: vscode.ExtensionContext) {
 	// Register custom editor
 	context.subscriptions.push(MarkdownEditorProvider.register(context));
 
-	// Keep hello world command for testing
-	const disposable = vscode.commands.registerCommand('simple-markdown-editor.helloWorld', () => {
-		vscode.window.showInformationMessage('Hello World from Simple Markdown Editor!');
-	});
-
 	// Register keybinding commands
 	const showFormatMenuCommand = vscode.commands.registerCommand('simple-markdown-editor.showFormatMenu', async () => {
 		const items = [
@@ -68,7 +63,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	context.subscriptions.push(disposable, showFormatMenuCommand, insertLinkCommand, toggleCodeCommand, toggleStrikeCommand, openWithWysiwygCommand);
+	context.subscriptions.push(showFormatMenuCommand, insertLinkCommand, toggleCodeCommand, toggleStrikeCommand, openWithWysiwygCommand);
 }
 
 export function deactivate() {}

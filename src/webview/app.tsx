@@ -1,6 +1,5 @@
-import { useEffect, useState, useRef, useCallback, useLayoutEffect } from "react";
-import type { ViewMode, ModalType, EditorSettings } from "./types";
-import { toWebviewUri } from "./utils/imagePaths";
+import { useEffect, useState, useRef, useLayoutEffect } from "react";
+import type { ViewMode } from "./types";
 import {
 	useEditor,
 	EditorContent,
@@ -19,39 +18,35 @@ import { TableHeader } from "@tiptap/extension-table-header";
 import { common, createLowlight } from "lowlight";
 
 // Component imports
-import { Toolbar } from "./components/toolbar";
-import { HintsBar } from "./components/hints";
-import { SearchPanel, SearchHighlightOverlay } from "./components/search";
-import { SplitHighlightOverlay } from "./components/split-highlight";
-import { LinkModal, ImageModal, TableModal, SettingsModal } from "./components/modals";
-import {
-	TableFloatingMenu,
-	TableContextMenu,
-	useTableOperations,
-} from "./components/table";
-import { SuggestionsMenu } from "./components/suggestions";
-import {
-	CodeBlockComponent,
-	ImageComponent,
-	lastSelectedLanguage,
-	LinkHoverPopup,
-	useLinkHover,
-} from "./components/editor";
+import { Toolbar } from "./components/toolbar/Toolbar";
+import { HintsBar } from "./components/hints/hints-bar";
+import { SearchPanel } from "./components/search/search-panel";
+import { SearchHighlightOverlay } from "./components/search/search-highlight-overlay";
+import { SplitHighlightOverlay } from "./components/split-highlight/split-highlight-overlay";
+import { LinkModal } from "./components/modals/link-modal";
+import { ImageModal } from "./components/modals/image-modal";
+import { TableModal } from "./components/modals/table-modal";
+import { SettingsModal } from "./components/modals/settings-modal";
+import { TableFloatingMenu } from "./components/table/table-floating-menu";
+import { TableContextMenu } from "./components/table/table-context-menu";
+import { useTableOperations } from "./components/table/use-table-operations";
+import { SuggestionsMenu } from "./components/suggestions/suggestions-menu";
+import { CodeBlockComponent, lastSelectedLanguage } from "./components/editor/code-block-extension";
+import { ImageComponent } from "./components/editor/image-extension";
+import { LinkHoverPopup } from "./components/editor/link-hover-popup";
+import { useLinkHover } from "./components/editor/use-link-hover";
 
 // Hooks
-import {
-	useMarkdownSync,
-	useKeyboardShortcuts,
-	useVSCodeMessaging,
-	useFileDrop,
-	useSuggestions,
-	useTableMenu,
-	useSearch,
-	useSplitHighlight,
-} from "./hooks";
-
-// Utils
-import { updateTurndownOptions } from "./utils/markdown/turndownConfig";
+import { useMarkdownSync } from "./hooks/use-markdown-sync";
+import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
+import { useVSCodeMessaging } from "./hooks/use-vs-code-messaging";
+import { useFileDrop } from "./hooks/use-file-drop";
+import { useSuggestions } from "./hooks/use-suggestions";
+import { useTableMenu } from "./hooks/use-table-menu";
+import { useSearch } from "./hooks/use-search";
+import { useSplitHighlight } from "./hooks/use-split-highlight";
+import { useModals } from "./hooks/use-modals";
+import { useSettings } from "./hooks/use-settings";
 
 // Create lowlight instance with common languages
 const lowlight = createLowlight(common);
@@ -70,24 +65,6 @@ export function App() {
 	const [markdown, setMarkdown] = useState<string>("");
 	const [viewMode, setViewMode] = useState<ViewMode>("split");
 	const [baseUri, setBaseUri] = useState<string>("");
-
-	// Settings state (initialized with defaults, actual settings loaded from extension via globalState)
-	const [settings, setSettings] = useState<EditorSettings>({
-		imageDirectory: "./images",
-		emDelimiter: "*",
-		strongDelimiter: "**",
-		headingSizePreset: "medium",
-		indentationStyle: "2spaces",
-	});
-
-	// Modal state
-	const [modalType, setModalType] = useState<ModalType>(null);
-	const [linkUrl, setLinkUrl] = useState<string>("");
-	const [linkText, setLinkText] = useState<string>("");
-	const [imageUrl, setImageUrl] = useState<string>("");
-	const [imageAlt, setImageAlt] = useState<string>("");
-	const [tableRows, setTableRows] = useState<string>("3");
-	const [tableCols, setTableCols] = useState<string>("3");
 
 	const openLinkModalRef = useRef<(() => void) | null>(null);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -160,8 +137,7 @@ export function App() {
 					}
 
 					transaction.steps.forEach((step) => {
-						// eslint-disable-next-line @typescript-eslint/no-explicit-any
-						const stepMap = (step as any).getMap?.();
+						const stepMap = (step as unknown as { getMap?: () => { forEach: (cb: (oldStart: number, oldEnd: number, newStart: number, newEnd: number) => void) => void } }).getMap?.();
 						if (!stepMap) {
 							return;
 						}
@@ -226,6 +202,31 @@ export function App() {
 		handleSourceFocus,
 		handleSourceBlur,
 	} = useMarkdownSync({ editor, markdown, setMarkdown, viewMode, baseUri, vscode });
+
+	// Modals hook
+	const {
+		modalType, setModalType,
+		linkUrl, setLinkUrl,
+		linkText, setLinkText,
+		imageUrl, setImageUrl,
+		imageAlt, setImageAlt,
+		tableRows, setTableRows,
+		tableCols, setTableCols,
+		openLinkModal,
+		handleLinkSubmit,
+		handleRemoveLink,
+		openImagePicker,
+		handleImageSubmit,
+		openTableModal,
+		handleTableSubmit,
+		closeModal,
+	} = useModals({ editor, baseUriRef: refs.baseUriRef, vscode });
+
+	// Settings hook
+	const { settings, openSettingsModal, handleSettingsSave } = useSettings({
+		vscode,
+		setModalType,
+	});
 
 	// Suggestions hook
 	const {
@@ -303,23 +304,27 @@ export function App() {
 	});
 
 	// Apply/remove highlight class on editor blocks
+	const prevHighlightRef = useRef<Element | null>(null);
 	useEffect(() => {
 		if (!editor) return;
 		const editorElement = editor.view.dom as HTMLElement;
-		const blocks = editorElement.querySelectorAll(":scope > *");
 
-		blocks.forEach((block, index) => {
-			if (index === editorBlockIndex) {
+		// Remove previous highlight
+		prevHighlightRef.current?.classList.remove("split-highlight-block");
+
+		// Apply new highlight
+		if (editorBlockIndex !== null && editorBlockIndex >= 0) {
+			const block = editorElement.children[editorBlockIndex] as Element | undefined;
+			if (block) {
 				block.classList.add("split-highlight-block");
-			} else {
-				block.classList.remove("split-highlight-block");
+				prevHighlightRef.current = block;
 			}
-		});
+		} else {
+			prevHighlightRef.current = null;
+		}
 
 		return () => {
-			blocks.forEach((block) => {
-				block.classList.remove("split-highlight-block");
-			});
+			prevHighlightRef.current?.classList.remove("split-highlight-block");
 		};
 	}, [editor, editorBlockIndex]);
 
@@ -389,164 +394,10 @@ export function App() {
 		}
 	}, [markdown]);
 
-	// Listen for image modal open event
-	useEffect(() => {
-		const handleOpenImageModal = (e: CustomEvent<{ url: string; alt: string }>) => {
-			setImageUrl(e.detail.url);
-			setImageAlt(e.detail.alt);
-			setModalType("image");
-		};
-		window.addEventListener("open-image-modal", handleOpenImageModal as EventListener);
-		return () => {
-			window.removeEventListener("open-image-modal", handleOpenImageModal as EventListener);
-		};
-	}, []);
-
-	// Link modal handlers
-	const openLinkModal = useCallback(() => {
-		if (!editor) {
-			return;
-		}
-		const { from, to } = editor.state.selection;
-		setLinkText(editor.state.doc.textBetween(from, to, ""));
-		setLinkUrl(editor.getAttributes("link").href || "");
-		setModalType("link");
-	}, [editor]);
-
+	// Sync openLinkModal ref for external triggers
 	useEffect(() => {
 		openLinkModalRef.current = openLinkModal;
 	}, [openLinkModal]);
-
-	const handleLinkSubmit = useCallback(() => {
-		if (!editor || !linkUrl) {
-			return;
-		}
-		const { from, to, empty } = editor.state.selection;
-		if (empty) {
-			editor.chain().focus().insertContent(`<a href="${linkUrl}">${linkText || linkUrl}</a>`).unsetMark("link").run();
-		} else if (linkText && linkText !== editor.state.doc.textBetween(from, to, "")) {
-			editor.chain().focus().deleteSelection().insertContent(`<a href="${linkUrl}">${linkText}</a>`).unsetMark("link").run();
-		} else {
-			editor.chain().focus().setLink({ href: linkUrl }).setTextSelection(to).unsetMark("link").run();
-		}
-		setModalType(null);
-		setLinkUrl("");
-		setLinkText("");
-	}, [editor, linkUrl, linkText]);
-
-	const handleRemoveLink = useCallback(() => {
-		if (!editor) {
-			return;
-		}
-		editor.chain().focus().deleteSelection().run();
-		setModalType(null);
-		setLinkUrl("");
-		setLinkText("");
-	}, [editor]);
-
-	// Image modal handlers
-	const openImagePicker = useCallback(() => {
-		vscode.postMessage({ type: "pickImage" });
-	}, []);
-
-	const handleImageSubmit = useCallback(() => {
-		if (!editor || !imageUrl) {
-			return;
-		}
-		const src = toWebviewUri(imageUrl, refs.baseUriRef.current);
-		if (editor.isActive("image")) {
-			editor.chain().focus().updateAttributes("image", { src, alt: imageAlt || "" }).run();
-		} else {
-			editor.chain().focus().setImage({ src, alt: imageAlt || "" }).run();
-		}
-		setModalType(null);
-		setImageUrl("");
-		setImageAlt("");
-	}, [editor, imageUrl, imageAlt, refs.baseUriRef]);
-
-	// Table modal handlers
-	const openTableModal = useCallback(() => {
-		if (!editor) {
-			return;
-		}
-		setTableRows("3");
-		setTableCols("3");
-		setModalType("table");
-	}, [editor]);
-
-	const handleTableSubmit = useCallback(() => {
-		if (!editor) {
-			return;
-		}
-		const rows = Math.max(1, Math.min(parseInt(tableRows, 10) || 3, 20));
-		const cols = Math.max(1, Math.min(parseInt(tableCols, 10) || 3, 10));
-		editor.chain().focus().insertTable({ rows, cols, withHeaderRow: true }).run();
-		setModalType(null);
-		setTableRows("3");
-		setTableCols("3");
-	}, [editor, tableRows, tableCols]);
-
-	// Close modal
-	const closeModal = useCallback(() => {
-		setModalType(null);
-		setLinkUrl("");
-		setLinkText("");
-		setImageUrl("");
-		setImageAlt("");
-		setTableRows("3");
-		setTableCols("3");
-	}, []);
-
-	// Settings handlers
-	const openSettingsModal = useCallback(() => {
-		setModalType("settings");
-	}, []);
-
-	const handleSettingsSave = useCallback((newSettings: EditorSettings) => {
-		setSettings(newSettings);
-		updateTurndownOptions(newSettings);
-		// Send full settings to extension for persistence
-		vscode.postMessage({
-			type: "updateSettings",
-			settings: newSettings,
-		});
-	}, []);
-
-	// Listen for settings from extension (on ready)
-	useEffect(() => {
-		const handleMessage = (event: MessageEvent) => {
-			const message = event.data;
-			if (message.type === "settings" && message.settings) {
-				setSettings(message.settings);
-				updateTurndownOptions(message.settings);
-				applyHeadingSizePreset(message.settings.headingSizePreset);
-			}
-		};
-		window.addEventListener("message", handleMessage);
-		return () => window.removeEventListener("message", handleMessage);
-	}, []);
-
-	// Apply settings on mount and when settings change
-	useEffect(() => {
-		updateTurndownOptions(settings);
-		applyHeadingSizePreset(settings.headingSizePreset);
-	}, [settings]);
-
-	// Apply heading size CSS variables
-	const applyHeadingSizePreset = (preset: EditorSettings["headingSizePreset"]) => {
-		const root = document.documentElement;
-		const sizes = {
-			small: { h1: "1.6em", h2: "1.3em", h3: "1.15em", h4: "1.05em", h5: "1em" },
-			medium: { h1: "2em", h2: "1.5em", h3: "1.25em", h4: "1.1em", h5: "1.05em" },
-			large: { h1: "2.4em", h2: "1.8em", h3: "1.5em", h4: "1.25em", h5: "1.1em" },
-		};
-		const selected = sizes[preset] || sizes.medium;
-		root.style.setProperty("--heading-h1-size", selected.h1);
-		root.style.setProperty("--heading-h2-size", selected.h2);
-		root.style.setProperty("--heading-h3-size", selected.h3);
-		root.style.setProperty("--heading-h4-size", selected.h4);
-		root.style.setProperty("--heading-h5-size", selected.h5);
-	};
 
 	return (
 		<div className="simple-markdown-editor">

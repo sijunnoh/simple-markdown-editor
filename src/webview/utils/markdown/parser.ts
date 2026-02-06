@@ -1,5 +1,5 @@
 import { marked } from "marked";
-import { transformImagePaths } from "../imagePaths";
+import { transformImagePaths } from "../image-paths";
 
 // Configure marked
 marked.setOptions({
