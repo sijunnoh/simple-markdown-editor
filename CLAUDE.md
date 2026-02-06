@@ -6,7 +6,7 @@
 - **Type**: VS Code Extension
 - **Purpose**: Rich Markdown editor with toolbar
 - **Style**: WYSIWYG + Toolbar (with source view toggle)
-- **Version**: 1.2.3
+- **Version**: 1.3.0
 
 ## Tech Stack
 
@@ -91,6 +91,9 @@ vsce package           # Create .vsix file
 - [x] Find & Replace with match highlighting
 - [x] Split view block highlight sync
 - [x] Explorer context menu for opening .md files
+- [x] Math rendering with KaTeX (inline and block)
+- [x] Mermaid diagram live preview
+- [x] YAML frontmatter support (collapsible block)
 
 ## Keyboard Shortcuts
 

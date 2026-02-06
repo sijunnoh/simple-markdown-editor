@@ -33,6 +33,8 @@ import { useTableOperations } from "./components/table/use-table-operations";
 import { SuggestionsMenu } from "./components/suggestions/suggestions-menu";
 import { CodeBlockComponent, lastSelectedLanguage } from "./components/editor/code-block-extension";
 import { ImageComponent } from "./components/editor/image-extension";
+import { Frontmatter } from "./components/editor/frontmatter-extension";
+import { MathInline, MathBlock } from "./components/editor/math-extension";
 import { LinkHoverPopup } from "./components/editor/link-hover-popup";
 import { useLinkHover } from "./components/editor/use-link-hover";
 
@@ -188,6 +190,9 @@ export function App() {
 			TableRow,
 			TableHeader,
 			TableCell,
+			Frontmatter,
+			MathInline,
+			MathBlock,
 		],
 		content: "",
 	});

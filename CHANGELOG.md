@@ -2,6 +2,22 @@
 
 All notable changes to Simple Markdown Editor will be documented in this file.
 
+## [1.3.0] - 2026-02-06
+
+### Added
+
+- **Math Rendering (KaTeX)**: Inline (`$E=mc^2$`) and block (`$$...$$`) math expressions rendered with KaTeX
+  - Click to edit LaTeX source, click away to render
+  - Dollar amounts like `$100` are not parsed as math
+- **Mermaid Diagrams**: Live preview for mermaid code blocks (flowchart, sequence, pie, etc.)
+  - Toggle preview on/off per code block
+  - Automatic theme sync with VS Code (dark/light)
+  - 500ms debounce for smooth editing
+- **YAML Frontmatter**: Collapsible frontmatter block at document start
+  - Click to expand/collapse, edit as plain text
+  - Special characters properly escaped
+- **New dependencies**: `katex`, `mermaid`
+
 ## [1.2.3] - 2026-02-06
 
 ### Fixed

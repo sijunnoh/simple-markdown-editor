@@ -533,6 +533,99 @@ describe("buildNodeToLineMapping", () => {
 		expect(mapping[2]).toEqual({ start: 0, end: 0 });
 	});
 
+	it("should map multi-line math block ($$...$$)", () => {
+		const doc = mockDoc([
+			mockNode("mathBlock", "\\sum_{i=1}^n i"),
+		]);
+		const markdown = "$$\n\\sum_{i=1}^n i\n$$";
+		const mapping = buildNodeToLineMapping(doc, markdown);
+
+		expect(mapping).toEqual([{ start: 0, end: 2 }]);
+	});
+
+	it("should map single-line math block", () => {
+		const doc = mockDoc([
+			mockNode("mathBlock", "E=mc^2"),
+		]);
+		const markdown = "$$E=mc^2$$";
+		const mapping = buildNodeToLineMapping(doc, markdown);
+
+		expect(mapping).toEqual([{ start: 0, end: 0 }]);
+	});
+
+	it("should map frontmatter block (---...---)", () => {
+		const doc = mockDoc([
+			mockNode("frontmatter", "title: Test\nauthor: me"),
+		]);
+		const markdown = "---\ntitle: Test\nauthor: me\n---";
+		const mapping = buildNodeToLineMapping(doc, markdown);
+
+		expect(mapping).toEqual([{ start: 0, end: 3 }]);
+	});
+
+	it("should map frontmatter followed by content", () => {
+		const doc = mockDoc([
+			mockNode("frontmatter", "title: Test"),
+			mockNode("heading", "Hello"),
+			mockNode("paragraph", "World"),
+		]);
+		const markdown = "---\ntitle: Test\n---\n\n# Hello\n\nWorld";
+		const mapping = buildNodeToLineMapping(doc, markdown);
+
+		expect(mapping).toHaveLength(3);
+		expect(mapping[0]).toEqual({ start: 0, end: 2 }); // ---\ntitle: Test\n---
+		expect(mapping[1]).toEqual({ start: 4, end: 4 }); // # Hello
+		expect(mapping[2]).toEqual({ start: 6, end: 6 }); // World
+	});
+
+	it("should map math block between other blocks", () => {
+		const doc = mockDoc([
+			mockNode("paragraph", "Before math"),
+			mockNode("mathBlock", "\\frac{a}{b}"),
+			mockNode("paragraph", "After math"),
+		]);
+		const markdown = "Before math\n\n$$\n\\frac{a}{b}\n$$\n\nAfter math";
+		const mapping = buildNodeToLineMapping(doc, markdown);
+
+		expect(mapping).toHaveLength(3);
+		expect(mapping[0]).toEqual({ start: 0, end: 0 }); // Before math
+		expect(mapping[1]).toEqual({ start: 2, end: 4 }); // $$\n...\n$$
+		expect(mapping[2]).toEqual({ start: 6, end: 6 }); // After math
+	});
+
+	it("should map document with frontmatter + math + other blocks", () => {
+		const doc = mockDoc([
+			mockNode("frontmatter", "title: Doc"),
+			mockNode("heading", "Math Section"),
+			mockNode("paragraph", "Euler's identity:"),
+			mockNode("mathBlock", "e^{i\\pi} + 1 = 0"),
+			mockNode("paragraph", "End"),
+		]);
+		const markdown = [
+			"---",                    // line 0
+			"title: Doc",             // line 1
+			"---",                    // line 2
+			"",                       // line 3
+			"# Math Section",         // line 4
+			"",                       // line 5
+			"Euler's identity:",      // line 6
+			"",                       // line 7
+			"$$",                     // line 8
+			"e^{i\\pi} + 1 = 0",     // line 9
+			"$$",                     // line 10
+			"",                       // line 11
+			"End",                    // line 12
+		].join("\n");
+		const mapping = buildNodeToLineMapping(doc, markdown);
+
+		expect(mapping).toHaveLength(5);
+		expect(mapping[0]).toEqual({ start: 0, end: 2 });   // frontmatter
+		expect(mapping[1]).toEqual({ start: 4, end: 4 });   // heading
+		expect(mapping[2]).toEqual({ start: 6, end: 6 });   // paragraph
+		expect(mapping[3]).toEqual({ start: 8, end: 10 });  // math block
+		expect(mapping[4]).toEqual({ start: 12, end: 12 }); // End
+	});
+
 	it("should not false-positive fragment detection for unrelated paragraphs", () => {
 		// Two unrelated paragraphs - second should NOT be treated as fragment of first
 		const doc = mockDoc([
@@ -587,5 +680,33 @@ describe("findMappingForLine", () => {
 
 	it("should handle line at end of multi-line block", () => {
 		expect(findMappingForLine(mapping, 10)).toBe(3);
+	});
+
+	it("should find correct block for math and frontmatter entries", () => {
+		const mathFmMapping = [
+			{ start: 0, end: 2 },   // block 0: frontmatter (lines 0-2)
+			{ start: 4, end: 4 },   // block 1: heading (line 4)
+			{ start: 6, end: 8 },   // block 2: math block (lines 6-8)
+			{ start: 10, end: 10 }, // block 3: paragraph (line 10)
+		];
+
+		// Frontmatter opening ---
+		expect(findMappingForLine(mathFmMapping, 0)).toBe(0);
+		// Frontmatter content
+		expect(findMappingForLine(mathFmMapping, 1)).toBe(0);
+		// Frontmatter closing ---
+		expect(findMappingForLine(mathFmMapping, 2)).toBe(0);
+		// Blank line between frontmatter and heading
+		expect(findMappingForLine(mathFmMapping, 3)).toBe(-1);
+		// Heading
+		expect(findMappingForLine(mathFmMapping, 4)).toBe(1);
+		// Math block opening $$
+		expect(findMappingForLine(mathFmMapping, 6)).toBe(2);
+		// Math block content
+		expect(findMappingForLine(mathFmMapping, 7)).toBe(2);
+		// Math block closing $$
+		expect(findMappingForLine(mathFmMapping, 8)).toBe(2);
+		// Paragraph
+		expect(findMappingForLine(mathFmMapping, 10)).toBe(3);
 	});
 });

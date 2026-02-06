@@ -149,6 +149,92 @@ describe("parseMarkdown", () => {
 		});
 	});
 
+	describe("frontmatter parsing", () => {
+		it("should parse frontmatter at start of document", () => {
+			const md = "---\ntitle: Test\nauthor: me\n---\n\n# Hello";
+			const result = parseMarkdown(md, baseUri);
+			expect(result).toContain("frontmatter-block");
+			expect(result).toContain("data-content");
+			expect(result).toContain("title: Test");
+		});
+
+		it("should not parse --- in middle of document as frontmatter", () => {
+			const md = "# Title\n\n---\n\nSome text";
+			const result = parseMarkdown(md, baseUri);
+			expect(result).not.toContain("frontmatter-block");
+			expect(result).toContain("<hr");
+		});
+
+		it("should handle frontmatter with special characters", () => {
+			const md = '---\ntitle: "Hello <World>"\n---\n\nContent';
+			const result = parseMarkdown(md, baseUri);
+			expect(result).toContain("frontmatter-block");
+			expect(result).toContain("&lt;World&gt;");
+		});
+
+		it("should handle empty frontmatter", () => {
+			const md = "---\n\n---\n\nContent";
+			const result = parseMarkdown(md, baseUri);
+			expect(result).toContain("Content");
+		});
+	});
+
+	describe("math inline parsing", () => {
+		it("should parse inline math", () => {
+			const md = "The formula $E=mc^2$ is famous";
+			const result = parseMarkdown(md, baseUri);
+			expect(result).toContain("math-inline");
+			expect(result).toContain('data-latex="E=mc^2"');
+		});
+
+		it("should not parse dollar amounts as math", () => {
+			const md = "The price is $100 and $200";
+			const result = parseMarkdown(md, baseUri);
+			expect(result).not.toContain("math-inline");
+			expect(result).toContain("$100");
+		});
+
+		it("should not parse dollar with trailing space as math", () => {
+			const md = "Cost is $ 50 per item";
+			const result = parseMarkdown(md, baseUri);
+			expect(result).not.toContain("math-inline");
+		});
+
+		it("should parse math with LaTeX commands", () => {
+			const md = "Formula: $\\frac{a}{b}$";
+			const result = parseMarkdown(md, baseUri);
+			expect(result).toContain("math-inline");
+		});
+
+		it("should handle multiple inline math in one line", () => {
+			const md = "$a^2$ plus $b^2$ equals $c^2$";
+			const result = parseMarkdown(md, baseUri);
+			const count = (result.match(/math-inline/g) || []).length;
+			expect(count).toBe(3);
+		});
+	});
+
+	describe("math block parsing", () => {
+		it("should parse block math", () => {
+			const md = "$$\n\\sum_{i=1}^n i\n$$";
+			const result = parseMarkdown(md, baseUri);
+			expect(result).toContain("math-block");
+			expect(result).toContain("data-latex");
+		});
+
+		it("should parse block math on single line", () => {
+			const md = "$$E=mc^2$$";
+			const result = parseMarkdown(md, baseUri);
+			expect(result).toContain("math-block");
+		});
+
+		it("should handle block math with multiple lines", () => {
+			const md = "$$\na = b\nc = d\n$$";
+			const result = parseMarkdown(md, baseUri);
+			expect(result).toContain("math-block");
+		});
+	});
+
 	describe("edge cases", () => {
 		it("should handle empty string", () => {
 			const result = parseMarkdown("", baseUri);

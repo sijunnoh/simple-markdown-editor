@@ -35,6 +35,28 @@ Full-featured toolbar with quick access to:
 
 ![Split view highlight](public/highlight.png)
 
+### Math (KaTeX)
+
+Render mathematical expressions using LaTeX syntax:
+
+- **Inline math**: `$E=mc^2$` renders inline
+- **Block math**: `$$\sum_{i=1}^n i$$` renders as a centered block
+- Click on rendered math to edit the LaTeX source
+- Dollar amounts like `$100` are not mistakenly parsed as math
+
+### Mermaid Diagrams
+
+Live preview for Mermaid diagram code blocks:
+
+- Supports flowcharts, sequence diagrams, pie charts, and more
+- Toggle preview on/off per code block
+- Automatically syncs with VS Code theme (dark/light)
+
+### YAML Frontmatter
+
+- Frontmatter blocks (`---...---`) at the start of documents are displayed as collapsible blocks
+- Click to expand and edit as plain text
+
 ### Code Blocks
 
 Syntax highlighting for 20+ programming languages with a language selector dropdown.

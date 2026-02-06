@@ -288,3 +288,50 @@ turndown.addRule("table", {
 		return md + "\n";
 	},
 });
+
+// Frontmatter rule
+turndown.addRule("frontmatter", {
+	filter: (node) => {
+		return (
+			node.nodeName === "DIV" &&
+			node.classList.contains("frontmatter-block")
+		);
+	},
+	replacement: (_content, node) => {
+		const el = node as HTMLElement;
+		const content = (el.getAttribute("data-content") || "")
+			.replace(/&amp;/g, "&")
+			.replace(/&lt;/g, "<")
+			.replace(/&gt;/g, ">")
+			.replace(/&quot;/g, '"');
+		return `---\n${content}\n---\n\n`;
+	},
+});
+
+// Math inline rule
+turndown.addRule("mathInline", {
+	filter: (node) => {
+		return (
+			node.nodeName === "SPAN" &&
+			node.classList.contains("math-inline")
+		);
+	},
+	replacement: (_content, node) => {
+		const latex = (node as HTMLElement).getAttribute("data-latex") || "";
+		return `$${latex}$`;
+	},
+});
+
+// Math block rule
+turndown.addRule("mathBlock", {
+	filter: (node) => {
+		return (
+			node.nodeName === "DIV" &&
+			node.classList.contains("math-block")
+		);
+	},
+	replacement: (_content, node) => {
+		const latex = (node as HTMLElement).getAttribute("data-latex") || "";
+		return `\n$$\n${latex}\n$$\n\n`;
+	},
+});

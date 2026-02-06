@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { NodeViewWrapper, NodeViewContent } from "@tiptap/react";
+import { MermaidPreview } from "./mermaid-preview";
 
 // Track last selected language for new code blocks
 export let lastSelectedLanguage = "plaintext";
@@ -11,8 +13,12 @@ export function setLastSelectedLanguage(lang: string) {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function CodeBlockComponent({ node, updateAttributes, extension }: any) {
 	const language = node.attrs.language || "plaintext";
-	const languages: string[] =
-		extension.options.lowlight?.listLanguages?.() || [];
+	const languages: string[] = [
+		...(extension.options.lowlight?.listLanguages?.() || []),
+		"mermaid",
+	].sort();
+	const [showMermaidPreview, setShowMermaidPreview] = useState(true);
+	const isMermaid = language === "mermaid";
 
 	const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		const newLanguage = e.target.value;
@@ -36,9 +42,21 @@ export function CodeBlockComponent({ node, updateAttributes, extension }: any) {
 					</option>
 				))}
 			</select>
+			{isMermaid && (
+				<button
+					className="mermaid-toggle"
+					contentEditable={false}
+					onClick={() => setShowMermaidPreview(!showMermaidPreview)}
+				>
+					{showMermaidPreview ? "Hide Preview" : "Show Preview"}
+				</button>
+			)}
 			<pre>
 				<NodeViewContent as={"code" as "div"} />
 			</pre>
+			{isMermaid && showMermaidPreview && (
+				<MermaidPreview code={node.textContent || ""} />
+			)}
 		</NodeViewWrapper>
 	);
 }

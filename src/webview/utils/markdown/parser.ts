@@ -1,11 +1,17 @@
 import { marked } from "marked";
 import { transformImagePaths } from "../image-paths";
+import { frontmatterExtension } from "./frontmatter-marked-extension";
+import { mathExtension } from "./math-marked-extension";
 
 // Configure marked
 marked.setOptions({
 	gfm: true,
 	breaks: false,
 });
+
+// Register extensions
+marked.use(frontmatterExtension);
+marked.use(mathExtension);
 
 /**
  * Transform marked's task list HTML to TipTap's expected format.

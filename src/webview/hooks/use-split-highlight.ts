@@ -163,6 +163,42 @@ export function buildNodeToLineMapping(doc: ProseMirrorNode, markdown: string): 
 				inlineImageCount = 0;
 				break;
 
+			case "mathBlock":
+				// Math blocks: $$ ... $$
+				if (currentLine < lines.length) {
+					if (lines[currentLine].trim() === "$$") {
+						// Multi-line: $$\n...\n$$
+						currentLine++; // opening $$
+						while (currentLine < lines.length && lines[currentLine].trim() !== "$$") {
+							currentLine++;
+						}
+						if (currentLine < lines.length) {
+							currentLine++; // closing $$
+						}
+					} else {
+						// Single-line: $$...$$
+						currentLine++;
+					}
+				}
+				phantomMode = false;
+				inlineImageCount = 0;
+				break;
+
+			case "frontmatter":
+				// Frontmatter: ---\n...\n---
+				if (currentLine < lines.length && lines[currentLine].trim() === "---") {
+					currentLine++; // opening ---
+					while (currentLine < lines.length && lines[currentLine].trim() !== "---") {
+						currentLine++;
+					}
+					if (currentLine < lines.length) {
+						currentLine++; // closing ---
+					}
+				}
+				phantomMode = false;
+				inlineImageCount = 0;
+				break;
+
 			case "image": {
 				// Check if this image was extracted from an inline context
 				// (e.g., [![badge](img)](link) inside a paragraph that was already consumed)
@@ -307,7 +343,7 @@ export function useSplitHighlight({
 
 		// Find which top-level node contains the cursor using O(1) resolve
 		const $pos = editor.state.doc.resolve(from);
-		const blockIndex = $pos.depth >= 1 ? $pos.index(0) : 0;
+		const blockIndex = $pos.index(0);
 
 		if (blockIndex === -1 || blockIndex >= mappingRef.current.length) {
 			setHighlight({ sourceLines: null, editorBlockIndex: null });

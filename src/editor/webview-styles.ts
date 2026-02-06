@@ -1031,4 +1031,134 @@ export const webviewStyles = `
       color: var(--vscode-button-foreground);
       border-color: var(--vscode-button-background);
     }
+    /* Frontmatter */
+    .frontmatter-block {
+      background: var(--vscode-textCodeBlock-background);
+      border: 1px dashed var(--vscode-panel-border);
+      border-radius: 6px;
+      margin: 0 0 1em 0;
+      overflow: hidden;
+    }
+    .frontmatter-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--vscode-descriptionForeground);
+      user-select: none;
+      border-bottom: 1px solid var(--vscode-panel-border);
+    }
+    .frontmatter-header:hover {
+      background: var(--vscode-list-hoverBackground);
+    }
+    .frontmatter-toggle {
+      font-size: 10px;
+    }
+    .frontmatter-label {
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .frontmatter-textarea {
+      width: 100%;
+      border: none;
+      background: transparent;
+      color: var(--vscode-editor-foreground);
+      font-family: var(--vscode-editor-font-family);
+      font-size: var(--vscode-editor-font-size, 13px);
+      line-height: 1.5;
+      padding: 8px 12px;
+      resize: none;
+      outline: none;
+    }
+    /* Math Inline */
+    .math-inline-wrapper {
+      display: inline;
+    }
+    .math-inline-rendered {
+      cursor: pointer;
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+    .math-inline-rendered:hover {
+      background: var(--vscode-editor-selectionBackground);
+    }
+    .math-inline-input {
+      font-family: var(--vscode-editor-font-family);
+      font-size: var(--vscode-editor-font-size, 13px);
+      background: var(--vscode-input-background);
+      color: var(--vscode-input-foreground);
+      border: 1px solid var(--vscode-focusBorder);
+      border-radius: 3px;
+      padding: 2px 6px;
+      outline: none;
+      min-width: 60px;
+    }
+    /* Math Block */
+    .math-block-wrapper {
+      margin: 1em 0;
+      text-align: center;
+    }
+    .math-block-rendered {
+      cursor: pointer;
+      padding: 12px;
+      border-radius: 6px;
+    }
+    .math-block-rendered:hover {
+      background: var(--vscode-editor-selectionBackground);
+    }
+    .math-block-input {
+      width: 100%;
+      font-family: var(--vscode-editor-font-family);
+      font-size: var(--vscode-editor-font-size, 13px);
+      background: var(--vscode-input-background);
+      color: var(--vscode-input-foreground);
+      border: 1px solid var(--vscode-focusBorder);
+      border-radius: 4px;
+      padding: 8px 12px;
+      margin-top: 8px;
+      resize: none;
+      outline: none;
+    }
+    .math-error {
+      color: var(--vscode-errorForeground);
+      font-family: var(--vscode-editor-font-family);
+      font-size: 0.9em;
+    }
+    /* Mermaid Preview */
+    .mermaid-toggle {
+      position: absolute;
+      top: 6px;
+      right: 120px;
+      padding: 2px 8px;
+      font-size: 11px;
+      background: var(--vscode-button-secondaryBackground, rgba(255,255,255,0.1));
+      color: var(--vscode-button-secondaryForeground, var(--vscode-foreground));
+      border: 1px solid var(--vscode-panel-border);
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 10;
+    }
+    .mermaid-toggle:hover {
+      background: var(--vscode-button-secondaryHoverBackground, rgba(255,255,255,0.15));
+    }
+    .mermaid-preview {
+      padding: 12px;
+      border-top: 1px dashed var(--vscode-panel-border);
+      text-align: center;
+      background: var(--vscode-editor-background);
+      border-radius: 0 0 6px 6px;
+    }
+    .mermaid-preview svg {
+      max-width: 100%;
+      height: auto;
+    }
+    .mermaid-error {
+      color: var(--vscode-errorForeground);
+      font-size: 12px;
+      font-family: var(--vscode-editor-font-family);
+      padding: 8px;
+    }
 `;
