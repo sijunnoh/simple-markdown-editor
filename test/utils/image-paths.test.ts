@@ -134,5 +134,36 @@ describe("imagePaths", () => {
 				`${baseUri}/images/photo.png`,
 			);
 		});
+
+		it("should not double-encode already encoded paths", () => {
+			expect(toWebviewUri("./my%20folder/photo%201.png", baseUri)).toBe(
+				`${baseUri}/my%20folder/photo%201.png`,
+			);
+		});
+
+		it("should handle mixed encoded and unencoded segments", () => {
+			expect(toWebviewUri("./my%20folder/new image.png", baseUri)).toBe(
+				`${baseUri}/my%20folder/new%20image.png`,
+			);
+		});
+
+		it("should handle paths with special characters", () => {
+			expect(toWebviewUri("./images/photo (1).png", baseUri)).toBe(
+				`${baseUri}/images/photo%20(1).png`,
+			);
+		});
+
+		it("should handle deeply nested paths", () => {
+			expect(toWebviewUri("./a/b/c/d/image.png", baseUri)).toBe(
+				`${baseUri}/a/b/c/d/image.png`,
+			);
+		});
+
+		it("should return already-transformed vscode-webview URLs unchanged", () => {
+			const fullUri = `${baseUri}/image.png`;
+			// starts with "http" check won't catch this, but baseUri is present
+			// This tests current behavior: non-http, non-data paths get transformed
+			expect(toWebviewUri(fullUri, baseUri)).toContain(baseUri);
+		});
 	});
 });

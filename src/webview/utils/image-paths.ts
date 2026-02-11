@@ -106,10 +106,11 @@ export function toWebviewUri(path: string, baseUri: string): string {
 	}
 	// Remove leading ./ if present
 	const cleanPath = path.replace(/^\.\//, "");
-	// Encode path segments to handle spaces and special characters
+	// Encode path segments to handle spaces and special characters.
+	// Decode first to prevent double-encoding (e.g., %20 → %2520).
 	const encodedPath = cleanPath
 		.split("/")
-		.map((segment) => encodeURIComponent(segment))
+		.map((segment) => encodeURIComponent(decodeURIComponent(segment)))
 		.join("/");
 	return `${baseUri}/${encodedPath}`;
 }

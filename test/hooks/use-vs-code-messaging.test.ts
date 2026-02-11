@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeContent } from "../../src/webview/hooks/use-vs-code-messaging";
+import { normalizeContent } from "../../src/webview/utils/normalize";
 
 describe("use-vs-code-messaging", () => {
 	describe("normalizeContent", () => {

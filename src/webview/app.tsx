@@ -31,7 +31,7 @@ import { TableFloatingMenu } from "./components/table/table-floating-menu";
 import { TableContextMenu } from "./components/table/table-context-menu";
 import { useTableOperations } from "./components/table/use-table-operations";
 import { SuggestionsMenu } from "./components/suggestions/suggestions-menu";
-import { CodeBlockComponent, lastSelectedLanguage } from "./components/editor/code-block-extension";
+import { CodeBlockComponent } from "./components/editor/code-block-extension";
 import { ImageComponent } from "./components/editor/image-extension";
 import { Frontmatter } from "./components/editor/frontmatter-extension";
 import { MathInline, MathBlock } from "./components/editor/math-extension";
@@ -109,6 +109,11 @@ export function App() {
 				allowBase64: false,
 			}),
 			CodeBlockLowlight.extend({
+				addStorage() {
+					return {
+						lastSelectedLanguage: "plaintext",
+					};
+				},
 				addNodeView() {
 					return ReactNodeViewRenderer(CodeBlockComponent);
 				},
@@ -119,7 +124,7 @@ export function App() {
 							(attributes) =>
 							({ commands }) => {
 								return commands.setNode(this.name, {
-									language: lastSelectedLanguage,
+									language: this.storage.lastSelectedLanguage,
 									...attributes,
 								});
 							},
@@ -127,7 +132,7 @@ export function App() {
 							(attributes) =>
 							({ commands }) => {
 								return commands.toggleNode(this.name, "paragraph", {
-									language: lastSelectedLanguage,
+									language: this.storage.lastSelectedLanguage,
 									...attributes,
 								});
 							},
@@ -161,13 +166,13 @@ export function App() {
 												node.type.name === "codeBlock" &&
 												(node.attrs.language === "plaintext" ||
 													node.attrs.language === null) &&
-												lastSelectedLanguage !== "plaintext"
+												this.storage.lastSelectedLanguage !== "plaintext"
 											) {
 												setTimeout(() => {
 													this.editor.commands.command(({ tr }) => {
 														tr.setNodeMarkup(pos, undefined, {
 															...node.attrs,
-															language: lastSelectedLanguage,
+															language: this.storage.lastSelectedLanguage,
 														});
 														return true;
 													});

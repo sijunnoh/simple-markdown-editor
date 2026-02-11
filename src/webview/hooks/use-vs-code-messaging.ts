@@ -1,8 +1,9 @@
 import { useEffect, useCallback } from "react";
 import type { Editor } from "@tiptap/react";
-import type { ViewMode, ModalType, Suggestion } from "../types";
+import type { ViewMode, ModalType, Suggestion, ExtensionMessage } from "../types";
 import { toWebviewUri } from "../utils/image-paths";
 import { parseMarkdown } from "../utils/markdown/parser";
+import { normalizeContent } from "../utils/normalize";
 import type { MarkdownSyncRefs } from "./use-markdown-sync";
 
 interface UseVSCodeMessagingOptions {
@@ -20,11 +21,6 @@ interface UseVSCodeMessagingOptions {
 	refs: MarkdownSyncRefs;
 	vscode: { postMessage: (message: unknown) => void };
 	openLinkModalRef: React.MutableRefObject<(() => void) | null>;
-}
-
-// Normalize content for comparison
-export function normalizeContent(content: string): string {
-	return (content || "").replace(/\r\n/g, "\n").trim();
 }
 
 export function useVSCodeMessaging({
@@ -75,7 +71,7 @@ export function useVSCodeMessaging({
 	// Listen for messages from extension and custom events
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
-			const message = event.data;
+			const message = event.data as ExtensionMessage;
 			switch (message.type) {
 				case "update": {
 					const normalizedMsgContent = normalizeContent(message.content);
@@ -106,9 +102,9 @@ export function useVSCodeMessaging({
 						isUpdatingFromExtension.current = true;
 						const html = parseMarkdown(message.content, message.baseUri || baseUri);
 						editor.commands.setContent(html);
-						setTimeout(() => {
+						queueMicrotask(() => {
 							isUpdatingFromExtension.current = false;
-						}, 50);
+						});
 					}
 					break;
 				}

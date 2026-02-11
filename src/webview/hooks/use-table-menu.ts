@@ -21,9 +21,13 @@ export function useTableMenu({ editor, viewMode }: UseTableMenuOptions) {
 
 		let currentTableElement: HTMLElement | null = null;
 		let resizeObserver: ResizeObserver | null = null;
+		let isUpdating = false;
 
 		const updateTableMenu = () => {
-			if (editor.isActive("table") && viewMode !== "source") {
+			if (isUpdating) { return; }
+			isUpdating = true;
+			try {
+				if (editor.isActive("table") && viewMode !== "source") {
 				const { state } = editor;
 				const { selection } = state;
 				const { $anchor } = selection;
@@ -79,6 +83,9 @@ export function useTableMenu({ editor, viewMode }: UseTableMenuOptions) {
 				currentTableElement = null;
 			}
 			setTableMenu({ visible: false, position: { x: 0, y: 0 } });
+			} finally {
+				isUpdating = false;
+			}
 		};
 
 		editor.on("selectionUpdate", updateTableMenu);

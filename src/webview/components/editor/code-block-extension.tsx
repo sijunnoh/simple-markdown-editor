@@ -2,13 +2,6 @@ import { useState } from "react";
 import { NodeViewWrapper, NodeViewContent } from "@tiptap/react";
 import { MermaidPreview } from "./mermaid-preview";
 
-// Track last selected language for new code blocks
-export let lastSelectedLanguage = "plaintext";
-
-export function setLastSelectedLanguage(lang: string) {
-	lastSelectedLanguage = lang;
-}
-
 // CodeBlock component for ReactNodeViewRenderer
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function CodeBlockComponent({ node, updateAttributes, extension }: any) {
@@ -23,8 +16,8 @@ export function CodeBlockComponent({ node, updateAttributes, extension }: any) {
 	const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		const newLanguage = e.target.value;
 		updateAttributes({ language: newLanguage });
-		// Remember this language for the next code block
-		setLastSelectedLanguage(newLanguage);
+		// Remember this language for the next code block (stored in extension storage)
+		extension.storage.lastSelectedLanguage = newLanguage;
 	};
 
 	return (

@@ -17,19 +17,24 @@ export function useFileDrop({ vscode }: UseFileDropOptions) {
 
 				if (imageFiles.length > 0) {
 					const promises = imageFiles.map((file) => {
-						return new Promise<{ name: string; data: string }>((resolve) => {
+						return new Promise<{ name: string; data: string }>((resolve, reject) => {
 							const reader = new FileReader();
 							reader.onload = () => {
 								const base64 = (reader.result as string).split(",")[1];
 								resolve({ name: file.name, data: base64 });
 							};
+							reader.onerror = () => reject(reader.error);
 							reader.readAsDataURL(file);
 						});
 					});
 
-					Promise.all(promises).then((droppedFiles) => {
-						vscode.postMessage({ type: "dropFiles", files: droppedFiles });
-					});
+					Promise.all(promises)
+						.then((droppedFiles) => {
+							vscode.postMessage({ type: "dropFiles", files: droppedFiles });
+						})
+						.catch((err) => {
+							console.error("Failed to read dropped files:", err);
+						});
 					return;
 				}
 			}
@@ -49,7 +54,7 @@ export function useFileDrop({ vscode }: UseFileDropOptions) {
 	const handlePaste = useCallback(
 		(e: React.ClipboardEvent) => {
 			const items = e.clipboardData?.items;
-			if (!items) return;
+			if (!items) { return; }
 
 			const imageItem = Array.from(items).find((item) =>
 				item.type.startsWith("image/"),
@@ -63,6 +68,9 @@ export function useFileDrop({ vscode }: UseFileDropOptions) {
 					reader.onload = () => {
 						const base64 = (reader.result as string).split(",")[1];
 						vscode.postMessage({ type: "pasteImage", data: base64 });
+					};
+					reader.onerror = (err) => {
+						console.error("Failed to read pasted image:", err);
 					};
 					reader.readAsDataURL(file);
 				}

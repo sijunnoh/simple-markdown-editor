@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeContent } from "../../src/webview/hooks/use-markdown-sync";
+import { normalizeContent } from "../../src/webview/utils/normalize";
 
 describe("use-markdown-sync", () => {
 	describe("normalizeContent", () => {

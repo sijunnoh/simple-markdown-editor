@@ -4,6 +4,10 @@ import type { ViewMode } from "../types";
 import { untransformImagePaths } from "../utils/image-paths";
 import { turndown } from "../utils/markdown/turndown-config";
 import { parseMarkdown } from "../utils/markdown/parser";
+import { normalizeContent } from "../utils/normalize";
+
+/** Debounce delay (ms) for syncing editor changes to VS Code */
+const SYNC_DEBOUNCE_MS = 100;
 
 interface UseMarkdownSyncOptions {
 	editor: Editor | null;
@@ -22,11 +26,6 @@ export interface MarkdownSyncRefs {
 	isSaving: React.RefObject<boolean>;
 	isEditorEditing: React.RefObject<boolean>;
 	lastSyncedMarkdownRef: React.RefObject<string>;
-}
-
-// Normalize content for comparison (handles line ending differences)
-export function normalizeContent(content: string): string {
-	return (content || "").replace(/\r\n/g, "\n").trim();
 }
 
 export function useMarkdownSync({
@@ -87,7 +86,7 @@ export function useMarkdownSync({
 				}
 				setMarkdown(md);
 				syncToVSCode(md);
-			}, 100);
+			}, SYNC_DEBOUNCE_MS);
 		},
 		[setMarkdown, syncToVSCode],
 	);
@@ -152,7 +151,7 @@ export function useMarkdownSync({
 			}
 			updateTimeoutRef.current = setTimeout(() => {
 				syncToVSCode(newMarkdown);
-			}, 100);
+			}, SYNC_DEBOUNCE_MS);
 		},
 		[editor, viewMode, baseUri, setMarkdown, syncToVSCode],
 	);
@@ -191,9 +190,9 @@ export function useMarkdownSync({
 			isUpdatingFromExtension.current = true;
 			const html = parseMarkdown(markdown, baseUri);
 			editor.commands.setContent(html);
-			setTimeout(() => {
+			queueMicrotask(() => {
 				isUpdatingFromExtension.current = false;
-			}, 50);
+			});
 		}
 	}, [editor, viewMode, markdown, baseUri]);
 
@@ -209,9 +208,9 @@ export function useMarkdownSync({
 			const html = parseMarkdown(markdown, baseUri);
 			editor.commands.setContent(html);
 			lastSyncedMarkdownRef.current = markdown;
-			setTimeout(() => {
+			queueMicrotask(() => {
 				isUpdatingFromExtension.current = false;
-			}, 50);
+			});
 		}
 	}, [viewMode]); // Only trigger on view mode change
 
