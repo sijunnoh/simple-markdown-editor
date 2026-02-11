@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { parseMarkdown } from "../../src/webview/utils/markdown/parser";
 
 /**
  * Tests for link hover logic used by useLinkHover.
@@ -107,6 +108,63 @@ describe("use-link-hover", () => {
 		it("should handle empty strings", () => {
 			const info = extractLinkInfo("", "");
 			expect(info).toEqual({ url: "", text: "" });
+		});
+	});
+
+	describe("link detection - only actual URLs should become links", () => {
+		// With autolink disabled in TipTap, links come from markdown parsing (marked GFM).
+		// marked GFM only autolinks URLs with explicit http/https protocol.
+		const baseUri = "vscode-webview://test/workspace";
+
+		it("should create link for https URL", () => {
+			const html = parseMarkdown("Visit https://example.com today", baseUri);
+			expect(html).toContain('<a href="https://example.com"');
+		});
+
+		it("should create link for http URL", () => {
+			const html = parseMarkdown("Visit http://example.com today", baseUri);
+			expect(html).toContain('<a href="http://example.com"');
+		});
+
+		it("should create link for URL with path", () => {
+			const html = parseMarkdown("See https://github.com/user/repo/issues/1", baseUri);
+			expect(html).toContain('<a href="https://github.com/user/repo/issues/1"');
+		});
+
+		it("should create link for URL with query params", () => {
+			const html = parseMarkdown("Search https://google.com/search?q=test here", baseUri);
+			expect(html).toContain('<a href="https://google.com/search?q=test"');
+		});
+
+		it("should create link for markdown link syntax", () => {
+			const html = parseMarkdown("[Google](https://google.com)", baseUri);
+			expect(html).toContain('<a href="https://google.com"');
+			expect(html).toContain("Google");
+		});
+
+		it("should not create link for .md filename", () => {
+			const html = parseMarkdown("# CLAUDE.md", baseUri);
+			expect(html).not.toContain("<a");
+		});
+
+		it("should not create link for README.md", () => {
+			const html = parseMarkdown("Edit README.md file", baseUri);
+			expect(html).not.toContain("<a");
+		});
+
+		it("should not create link for domain-like text without protocol", () => {
+			const html = parseMarkdown("Visit example.com today", baseUri);
+			expect(html).not.toContain("<a");
+		});
+
+		it("should not create link for dotted abbreviations", () => {
+			const html = parseMarkdown("Use e.g. this method", baseUri);
+			expect(html).not.toContain("<a");
+		});
+
+		it("should not create link for package.json", () => {
+			const html = parseMarkdown("Open package.json to configure", baseUri);
+			expect(html).not.toContain("<a");
 		});
 	});
 

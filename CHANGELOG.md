@@ -2,6 +2,16 @@
 
 All notable changes to Simple Markdown Editor will be documented in this file.
 
+## [1.3.1] - 2026-02-11
+
+### Fixed
+
+- **Autolink False Positives**: Fixed `linkifyjs` treating filenames and domain-like text as URLs (e.g. `CLAUDE.md` → `http://CLAUDE.md`)
+  - Added ProseMirror plugin to strip auto-linked non-URL marks in WYSIWYG view
+  - Added turndown rule to prevent markdown file corruption on save
+  - Filenames (`.md`, `.json`, `.tsx`), bare domains (`example.com`), and abbreviations (`e.g.`) are no longer auto-linked
+  - Real URLs with `http://` or `https://` protocol are preserved correctly
+
 ## [1.3.0] - 2026-02-06
 
 ### Added

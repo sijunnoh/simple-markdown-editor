@@ -7,6 +7,7 @@ import {
 } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
+import { Plugin, PluginKey } from "@tiptap/pm/state";
 import TiptapImage from "@tiptap/extension-image";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import TaskList from "@tiptap/extension-task-list";
@@ -81,7 +82,48 @@ export function App() {
 				codeBlock: false,
 				hardBreak: { keepMarks: true },
 			}),
-			Link.configure({
+			Link.extend({
+				addProseMirrorPlugins() {
+					const linkType = this.type;
+					// Strip auto-linked non-URLs (linkifyjs treats "CLAUDE.md" as "http://CLAUDE.md")
+					return [
+						new Plugin({
+							key: new PluginKey("strip-bad-autolinks"),
+							appendTransaction: (transactions, _oldState, newState) => {
+								if (!transactions.some((t) => t.docChanged)) {
+									return;
+								}
+								const { tr } = newState;
+								let modified = false;
+								newState.doc.descendants((node, pos) => {
+									if (!node.isText) {
+										return;
+									}
+									for (const mark of node.marks) {
+										if (mark.type !== linkType || !mark.attrs.href) {
+											continue;
+										}
+										const href = mark.attrs.href as string;
+										const text = node.text || "";
+										const hrefBase = href.replace(/^https?:\/\//, "");
+										if (!text.includes("://") && hrefBase === text) {
+											tr.removeMark(pos, pos + node.nodeSize, linkType);
+											modified = true;
+										}
+									}
+								});
+								if (modified) {
+									tr.setMeta("preventAutolink", true);
+									return tr;
+								}
+							},
+						}),
+					];
+				},
+				addPasteRules() {
+					return [];
+				},
+			}).configure({
 				openOnClick: false,
 				HTMLAttributes: { class: "editor-link" },
 			}),

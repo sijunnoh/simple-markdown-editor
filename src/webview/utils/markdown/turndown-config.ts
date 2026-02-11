@@ -9,6 +9,19 @@ export const turndown = new TurndownService({
 	emDelimiter: "*",
 });
 
+// Strip autolinked non-URLs (e.g. linkifyjs treats "CLAUDE.md" as "http://CLAUDE.md")
+// Detect by checking: text has no protocol AND href == protocol + text
+turndown.addRule("stripAutolinkedNonUrls", {
+	filter: (node) => {
+		if (node.nodeName !== "A") return false;
+		const href = node.getAttribute("href") || "";
+		const text = node.textContent || "";
+		const hrefBase = href.replace(/^https?:\/\//, "");
+		return !text.includes("://") && hrefBase === text;
+	},
+	replacement: (content) => content,
+});
+
 // Get indentation string based on setting
 export function getIndentString(style: EditorSettings["indentationStyle"]): string {
 	switch (style) {
